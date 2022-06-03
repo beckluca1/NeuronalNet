@@ -1,29 +1,30 @@
 class Vector2D {
-  constructor(a=null, b=null) {
-    if(a==null)
-      this.x = 0;
-    else
-      this.x = a;
-    if(b==null)
-      this.y = this.x;
-    else
-      this.y = b;
+  constructor(x=0, y=0) {
+      this.x = x;
+      this.y = y;
+    }
+}
+
+class Box extends Vector2D {
+  constructor(x=0,y=0,width=0, height=0) {
+    super(x,y);
+    this.width = width;
+    this.height = height;
   }
 }
 
-class Pixel {
-  constructor(a,b,c=null,d=null) {
-    this.color = 0;
-    this.pos = new Vector2D(a,b);
-    this.size = new Vector2D(c,d);
-    if(c==null) {
-      this.pos = new Vector2D(a.x,a.y);
-      this.size = new Vector2D(b.x,b.y);
-    }
-    else if(d==null) {
-      this.pos = new Vector2D(a.x,a.y);
-      this.size = new Vector2D(b,c);
-    }
+class Pixel extends Box {
+  constructor(x=0,y=0,width=0,height=0,red=0,green=0,blue=0) {
+    super(x,y,width,height);
+    this.red = red;
+    this.green = green;
+    this.blue = blue;
+  }
+
+  setColor(red,blue=red,green=red) {
+    this.red = red;
+    this.green = green;
+    this.blue = blue;
   }
 
   mouseHold() {
@@ -33,10 +34,10 @@ class Pixel {
       let x2 = LAST_MOUSE_CURSOR_POSITION.x;
       let y2 = LAST_MOUSE_CURSOR_POSITION.y;
 
-      let minX = this.pos.x-2;
-      let minY = this.pos.y-2;
-      let maxX = this.pos.x+this.size.x+2;
-      let maxY = this.pos.y+this.size.y+2;
+      let minX = this.x-2;
+      let minY = this.y-2;
+      let maxX = this.x+this.width+2;
+      let maxY = this.y+this.height+2;
 
       // Completely outside.
       if ((x1 <= minX && x2 <= minX) || (y1 <= minY && y2 <= minY) || (x1 >= maxX && x2 >= maxX) || (y1 >= maxY && y2 >= maxY))
@@ -62,14 +63,14 @@ class Pixel {
   }
 
   mouseClick() {
-    if(MOUSE_CLICK&&MOUSE_CURSOR_POSITION.x>=this.pos.x&&MOUSE_CURSOR_POSITION.x<this.pos.x+this.size.x&&MOUSE_CURSOR_POSITION.y>=this.pos.y&&MOUSE_CURSOR_POSITION.y<this.pos.y+this.size.y)
+    if(MOUSE_CLICK&&MOUSE_CURSOR_POSITION.x>=this.x&&MOUSE_CURSOR_POSITION.x<this.x+this.width&&MOUSE_CURSOR_POSITION.y>=this.y&&MOUSE_CURSOR_POSITION.y<this.y+this.height)
       return true;
     return false;
   }
 
   draw() {
-    setColor(this.color*255,this.color*255,this.color*255);
-    drawRect(this.pos, this.size);
+    setColor(this.red*255,this.green*255,this.blue*255);
+    drawRect(this.x,this.y, this.width,this.height);
   }
 }
 
@@ -87,14 +88,14 @@ class ClickImage {
   update() {
     for(let i=0;i<this.pixels.length;i++) {
       if(this.pixels[i].mouseClick()||this.pixels[i].mouseHold()) {
-        this.pixels[i].color = 1;
+        this.pixels[i].setColor(1);
       }
     }
   }
 
   reset() {
     for(let i=0;i<this.pixels.length;i++) {
-      this.pixels[i].color = 0;
+      this.pixels[i].setColor(0);
     }
   }
 
@@ -123,7 +124,7 @@ class InputLayer {
 
   update() {
     for(let i=0;i<this.image.pixels.length;i++) {
-      this.values[i] = this.image.pixels[i].color;
+      this.values[i] = this.image.pixels[i].red;
     }
   }
 
@@ -316,16 +317,15 @@ class Slider {
   constructor(x,y,width,height) {
     this.pixel = new Pixel(x,y,width,height);
     this.slide = new Pixel(x,y,height,height);
-    this.slide.color = 0.2;
+    this.slide.setColor(0.3);
     this.value = 0;
     OBJECT_LIST.push(this);
   }
 
   update() {
     if(this.pixel.mouseHold()) {
-      //this.slide.pos.x = MOUSE_CURSOR_POSITION.x-this.slide.size.x/2;
-      this.slide.pos.x = Math.min(Math.max(MOUSE_CURSOR_POSITION.x-this.slide.size.x/2,this.pixel.pos.x),this.pixel.pos.x+this.pixel.size.x-this.slide.size.x);
-      this.value = (this.slide.pos.x-this.pixel.pos.x)/(this.pixel.size.x-this.slide.size.x);
+      this.slide.x = Math.min(Math.max(MOUSE_CURSOR_POSITION.x-this.slide.width/2,this.pixel.x),this.pixel.x+this.pixel.width-this.slide.width);
+      this.value = (this.slide.x-this.pixel.x)/(this.pixel.width-this.slide.width);
     }
   }
 
@@ -351,16 +351,16 @@ class TextField {
 
   update() {
     if(this.pixel.mouseClick()) {
-      this.pixel.color = 0.5;
+      this.pixel.setColor(0.5);
     }
     else
-      this.pixel.color = 0;
+      this.pixel.setColor(0);
   }
 
   draw() {
     this.pixel.draw();
     setColor(155,155,155);
-    drawText(this.text,this.pixel.pos.x+15,this.pixel.pos.y+this.pixel.size.y-10);
+    drawText(this.text,this.pixel.x+15,this.pixel.y+this.pixel.height-10);
   }
 }
 
@@ -525,7 +525,7 @@ function simulateAllData(net,image) {
     var realValue = splittedNetData[i][0];
     var binaryNetData = splittedNetData[i].substr(1,64*64);
     for(let j=0;j<binaryNetData.length;j++) {
-      image.pixels[j].color = binaryNetData[j];
+      image.pixels[j].setColor(binaryNetData[j]);
     }
     net.update();
     calculateNeuralNet(realValue,net,image);
@@ -539,7 +539,7 @@ function simulateRandomData(net,image) {
   var realValue = splittedNetData[randData][0];
   var binaryNetData = splittedNetData[randData].substr(1,64*64);
   for(let j=0;j<binaryNetData.length;j++) {
-    image.pixels[j].color = binaryNetData[j];
+    image.pixels[j].setColor(binaryNetData[j]);
   }
   net.update();
   calculateNeuralNet(realValue,net,image);
