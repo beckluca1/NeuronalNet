@@ -312,6 +312,29 @@ class NeuralNet {
   }
 }
 
+class Slider {
+  constructor(x,y,width,height) {
+    this.pixel = new Pixel(x,y,width,height);
+    this.slide = new Pixel(x,y,height,height);
+    this.slide.color = 0.2;
+    this.value = 0;
+    OBJECT_LIST.push(this);
+  }
+
+  update() {
+    if(this.pixel.mouseHold()) {
+      //this.slide.pos.x = MOUSE_CURSOR_POSITION.x-this.slide.size.x/2;
+      this.slide.pos.x = Math.min(Math.max(MOUSE_CURSOR_POSITION.x-this.slide.size.x/2,this.pixel.pos.x),this.pixel.pos.x+this.pixel.size.x-this.slide.size.x);
+      this.value = (this.slide.pos.x-this.pixel.pos.x)/(this.pixel.size.x-this.slide.size.x);
+    }
+  }
+
+  draw() {
+    this.pixel.draw();
+    this.slide.draw();
+  }
+
+}
 
 class TextField {
   constructor(x,y,width,height,text) {
@@ -382,6 +405,8 @@ var buttonC = new TextField(330,110,110,30,"Cost " + currentCost);
 var buttonH = new TextField(200,160,240,30,"Hitrate " + 0 + " / " + 0 + " : " + 0 + "%");
 
 var buttonI = new TextField(300,210,140,30,"Get Data");
+
+var slider = new Slider(510,160,128,30);
 
 var netData = "";
 var hits = [];
@@ -461,15 +486,14 @@ function loop(timestamp) {
   if(button9.mouseClick())
     calculateNeuralNetAndSave(9,neuralNet,imageNumber);
 
-  //console.log(Math.floor(hits/trials*1000)/10);
   c++;
   if(buttonI.mouseClick()) {
     console.log(netData)
     //simulateAllData(improveNeuralNet,improveImage);
     //neuralNet.copyState(improveNeuralNet);
   }
-
-  for(let i=0;i<STEPS_PER_TICK;i++) {
+  if(slider.value>1||Math.floor(c%(1/(slider.value)))==0) {
+    c = 0;
     simulateRandomData(improveNeuralNet,improveImage);
   }
   neuralNet.copyState(improveNeuralNet);
