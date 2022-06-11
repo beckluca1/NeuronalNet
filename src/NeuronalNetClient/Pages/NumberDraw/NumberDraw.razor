@@ -1,0 +1,57 @@
+@page "/numberdraw"
+
+<PageTitle>Number Draw</PageTitle>
+
+<h1>Number Draw</h1>
+
+<p>
+    Draw a number in the field below and let the neural net
+    work guess what number you just drew. Submit your result
+    by clicking on the button containing the corresponding number.
+</p>
+
+<button class="btn btn-secondary"
+        @onclick="@(() => OnNumberButtonClicked(0))">
+        0
+</button>
+<button class="btn btn-secondary"
+        @onclick="@(() => OnNumberButtonClicked(1))">
+        1
+</button>
+<button class="btn btn-secondary"
+        @onclick="@(() => OnNumberButtonClicked(2))">
+        2
+</button>
+<button class="btn btn-secondary" 
+        @onclick="@(() => OnNumberButtonClicked(3))">
+        3
+</button>
+<button class="btn btn-secondary" 
+        @onclick="@(() => OnNumberButtonClicked(4))">
+        4
+</button>
+<button class="btn btn-secondary" 
+        @onclick="@(() => OnNumberButtonClicked(5))">
+        5
+</button>
+<button class="btn btn-secondary" 
+        @onclick="@(() => OnNumberButtonClicked(6))">
+        6
+</button>
+<button class="btn btn-secondary" 
+        @onclick="@(() => OnNumberButtonClicked(7))">
+        7
+</button>
+<button class="btn btn-secondary" 
+        @onclick="@(() => OnNumberButtonClicked(8))">
+        8
+</button>
+<button class="btn btn-secondary" 
+        @onclick="@(() => OnNumberButtonClicked(9))">
+        9
+</button>
+
+<div class="drawfield" width="225" height="225">
+    
+</div>
+
