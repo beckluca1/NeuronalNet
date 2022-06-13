@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option csharp_namespace = "NeuronalNetServer.Proto";
+
+package bitmap;
+
+service Uploader {
+  rpc SendBitmapData (stream BitmapData) returns (SuccessReply);
+}
+
+message BitmapData {
+  int32 number = 1;
+  bytes bitmap = 2;
+}
+
+message SuccessReply {
+  bool success = 1;
+}
+
+message Null {}
