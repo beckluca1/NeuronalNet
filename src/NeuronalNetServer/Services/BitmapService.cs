@@ -1,24 +1,41 @@
 using Grpc.Core;
 using NeuronalNetServer.Proto;
 
-namespace NeuronalNetServer.Services;
-
-public class UploadService : Uploader.UploaderBase
+namespace NeuronalNetServer.Services
 {
-    private readonly ILogger<UploadService> _logger;
-    public UploadService(ILogger<UploadService> logger)
+    public class UploadService : Uploader.UploaderBase
     {
-        _logger = logger;
-    }
+        #region Fields
+        private readonly ILogger<UploadService> _logger;
 
-    public override Task<SuccessReply> SendBitmapData(IAsyncStreamReader<BitmapData> requestStream, ServerCallContext context)
-    {
-        //TODO: do something with requestStream
+        #endregion
 
-        return Task.FromResult(new SuccessReply
+        #region Constructor
+
+        public UploadService(ILogger<UploadService> logger)
         {
-            Success = true
-        });
-    }
+            _logger = logger;
+        }
 
+        #endregion
+
+        #region Methods
+
+        public override async Task<SuccessReply> SendBitmapData(IAsyncStreamReader<BitmapData> requestStream, ServerCallContext context)
+        {
+            while (await requestStream.MoveNext())
+            {
+                var bitmap = requestStream.Current;
+
+                //TODO: process BitmapData
+            }
+
+            return new SuccessReply()
+            {
+                Success = true
+            };
+        }
+
+        #endregion
+    }
 }
