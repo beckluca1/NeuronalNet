@@ -1,21 +1,24 @@
-using NeuronalNetClient;
 using Grpc.Net.Client;
 using NeuronalNetClient.Proto;
-using Google.Protobuf;
 using static NeuronalNetClient.Proto.Uploader;
+using Grpc.Net.Client.Web;
 
 namespace NeuronalNetClient.Services
 {
     public class GrpcUploader
     {
+        #region Fields
         private GrpcChannel _grpcChannel;
+
+        #endregion
 
         #region Constructor
 
         public GrpcUploader(string address)
         {
             //TODO: add TLS
-            _grpcChannel = GrpcChannel.ForAddress(address);
+            var httpHandler = new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler());
+            _grpcChannel = GrpcChannel.ForAddress(address, new GrpcChannelOptions { HttpHandler = httpHandler} );
         }
 
         #endregion
@@ -32,7 +35,6 @@ namespace NeuronalNetClient.Services
                 {
                     await streamingCall.RequestStream.WriteAsync(bitmap);
                 }
-
                 await streamingCall.RequestStream.CompleteAsync();
             }
         }
