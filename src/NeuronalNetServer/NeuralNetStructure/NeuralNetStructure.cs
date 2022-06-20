@@ -1,4 +1,4 @@
-namespace NeuronalNetServer.NeuralNetStructure
+namespace NeuronalNetServer
 {
     public static class Global
     {
