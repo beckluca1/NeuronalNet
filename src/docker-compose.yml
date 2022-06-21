@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  neuronalnetserver:
+    container_name: NeuronalNetServer
+    image: neuronalnetserver
+    restart: always
+    build:
+      context: .
+      dockerfile: NeuronalNetServer/Dockerfile
+    ports:
+      - 80:80
+      - 443:443
+
+  neuronalnetclient:
+    container_name: NeuronalNetClient
+    image: neuronalnetclient
+    restart: always
+    build:
+      context: .
+      dockerfile: NeuronalNetClient/Dockerfile
+    ports:
+     - 7613:7613
+    depends_on:
+      - neuronalnetserver
