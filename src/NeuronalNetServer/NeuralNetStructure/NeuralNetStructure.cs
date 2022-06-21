@@ -1,4 +1,4 @@
-namespace NeuronalNetServer
+namespace NeuronalNetServer.NeuronalNetStructure
 {
     public static class Global
     {
@@ -69,12 +69,15 @@ namespace NeuronalNetServer
         public void CalculateChanges(float realValue)
         {
             dValue = Global.Pow(realValue-value,2);
+            CalculateChanges();
+        }
 
-            dBias += Global.DSigmoid(activation)*dValue/previousNodeCount;
-            for(int i=0;i<=previousNodeCount;i++) 
+        public void Improve()
+        {
+            bias += dBias;
+            for(int i=0;i<weights.Count;i++)
             {
-                dWeights[i] += previousNodes[i].value*Global.DSigmoid(activation)*dValue/previousNodeCount;
-                previousNodes[i].dValue += weights[i]*Global.DSigmoid(activation)*dValue/previousNodeCount;
+                weights[i] += dWeights[i]; 
             }
         }
 
@@ -96,6 +99,11 @@ namespace NeuronalNetServer
         public float GetValue()
         {
             return value;
+        }
+
+        public float GetDValue()
+        {
+            return dValue;
         }
     }
 
@@ -149,6 +157,14 @@ namespace NeuronalNetServer
             }
         }
 
+        public void Improve()
+        {
+            foreach(NeuralNode node in nodes) 
+            {
+                node.Improve();
+            }
+        }
+
         public void SetValues(List<float> values)
         {
             for(int i=0;i<nodes.Count;i++) 
@@ -166,6 +182,16 @@ namespace NeuronalNetServer
             }  
             return values;
         }
+
+        public List<float> GetDValues()
+        {
+            List<float> dValues = new List<float>();
+            foreach(NeuralNode node in nodes) 
+            {
+                dValues.Add(node.GetDValue());
+            }  
+            return dValues;
+        }
     }
 
     public class NeuronalNet
@@ -180,12 +206,10 @@ namespace NeuronalNetServer
             layerCount = inLayerCount;
             layerSize = inLayerSize;
 
-            for(int i=0;i<=layerCount;i++) 
+            layers.Add(new NeuralLayer(inLayerSize[0]));
+            for(int i=1;i<=layerCount;i++) 
             {
-                if(i!=0)
-                    layers.Add(new NeuralLayer(inLayerSize[i],layers[i-1]));
-                else
-                    layers.Add(new NeuralLayer(inLayerSize[i]));
+                layers.Add(new NeuralLayer(inLayerSize[i],layers[i-1]));
             }
         }
 
@@ -199,11 +223,19 @@ namespace NeuronalNetServer
 
         public void CalculateChanges(List<float> realValues)
         {
-            layers[0].CalculateChanges(realValues);
-            for(int i=1;i<=layers.Count;i++) 
+            layers[layers.Count-1].CalculateChanges(realValues);
+            for(int i=layers.Count-2;i>0;i--) 
             {
                 layers[i].CalculateChanges();
             }
+        }
+
+        public void Improve()
+        {
+            foreach(NeuralLayer layer in layers) 
+            {
+                layer.Improve();
+            } 
         }
 
         public void SetInput(List<float> input)
@@ -214,6 +246,11 @@ namespace NeuronalNetServer
         public List<float> GetOutput()
         {
             return layers[layerCount].GetValues();
+        }
+
+        public List<float> GetDValues()
+        {
+            return layers[0].GetDValues();
         }
     }
 }
