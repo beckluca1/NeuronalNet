@@ -12,45 +12,49 @@
 </p>
 
 <button class="btn btn-secondary"
-        @onclick="@(() => OnNumberButtonClicked(0))">
+        @onclick='@(() => CallJSFunction("fillCanvas",0))'>
         0
 </button>
 <button class="btn btn-secondary"
-        @onclick="@(() => OnNumberButtonClicked(1))">
+        @onclick='@(() => CallJSFunction("fillCanvas",1))'>
         1
 </button>
 <button class="btn btn-secondary"
-        @onclick="@(() => OnNumberButtonClicked(2))">
+        @onclick='@(() => CallJSFunction("fillCanvas",2))'>
         2
 </button>
 <button class="btn btn-secondary" 
-        @onclick="@(() => OnNumberButtonClicked(3))">
+        @onclick='@(() => CallJSFunction("fillCanvas",3))'>
         3
 </button>
 <button class="btn btn-secondary" 
-        @onclick="@(() => OnNumberButtonClicked(4))">
+        @onclick='@(() => CallJSFunction("fillCanvas",4))'>
         4
 </button>
 <button class="btn btn-secondary" 
-        @onclick="@(() => OnNumberButtonClicked(5))">
+        @onclick='@(() => CallJSFunction("fillCanvas",5))'>
         5
 </button>
 <button class="btn btn-secondary" 
-        @onclick="@(() => OnNumberButtonClicked(6))">
+        @onclick='@(() => CallJSFunction("fillCanvas",6))'>
         6
 </button>
 <button class="btn btn-secondary" 
-        @onclick="@(() => OnNumberButtonClicked(7))">
+        @onclick='@(() => CallJSFunction("fillCanvas",7))'>
         7
 </button>
 <button class="btn btn-secondary" 
-        @onclick="@(() => OnNumberButtonClicked(8))">
+        @onclick='@(() => CallJSFunction("fillCanvas",8))'>
         8
 </button>
 <button class="btn btn-secondary" 
-        @onclick="@(() => OnNumberButtonClicked(9))">
+        @onclick='@(() => CallJSFunction("fillCanvas",9))'>
         9
 </button>
+
+<br><br/>
+
+<canvas id="image" width="300" height="300"></canvas>
 
 <!--<br><br/>-->
 

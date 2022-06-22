@@ -2,10 +2,16 @@ using Google.Protobuf;
 using NeuronalNetClient.Proto;
 using NeuronalNetClient.Services;
 
+using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
+
 namespace NeuronalNetClient.Pages.NumberDraw
 {
     public partial class NumberDraw
     {
+        [Inject]
+        private IJSRuntime JSRuntime { get; set; }
+
         #region Overrides
 
         protected override void OnInitialized()
@@ -33,6 +39,12 @@ namespace NeuronalNetClient.Pages.NumberDraw
             };
 
             await uploader.UploadBitmaps(bitmaps);
+        }
+
+        
+        private async Task CallJSFunction(String function, params Object[] args)
+        { 
+            await JSRuntime.InvokeVoidAsync(function, args);
         }
 
         #endregion
