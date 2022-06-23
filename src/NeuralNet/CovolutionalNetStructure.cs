@@ -1,4 +1,4 @@
-namespace NeuronalNetServer.NeuronalNetStructure
+namespace NeuralNet
 {
     public class NeuralMap
     {

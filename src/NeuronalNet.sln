@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeuronalNetClient", "Neuron
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeuronalNetServer", "NeuronalNetServer\NeuronalNetServer.csproj", "{2312FA7B-158D-4BC0-A67E-D55643699D21}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeuralNet", "NeuralNet\NeuralNet.csproj", "{F2CF6429-7F85-46CB-A651-598BD179D2E1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{2312FA7B-158D-4BC0-A67E-D55643699D21}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2312FA7B-158D-4BC0-A67E-D55643699D21}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2312FA7B-158D-4BC0-A67E-D55643699D21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2CF6429-7F85-46CB-A651-598BD179D2E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2CF6429-7F85-46CB-A651-598BD179D2E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2CF6429-7F85-46CB-A651-598BD179D2E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2CF6429-7F85-46CB-A651-598BD179D2E1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
