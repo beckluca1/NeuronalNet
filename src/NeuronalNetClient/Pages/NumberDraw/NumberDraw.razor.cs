@@ -1,6 +1,5 @@
 using Google.Protobuf;
 using NeuronalNetClient.Proto;
-using NeuronalNetClient.Services;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -11,6 +10,9 @@ namespace NeuronalNetClient.Pages.NumberDraw
     {
         [Inject]
         private IJSRuntime JSRuntime { get; set; }
+
+        [Inject]
+        private Uploader.UploaderClient GrpcUploader { get; set; } = default!;
 
         #region Overrides
 
@@ -23,14 +25,28 @@ namespace NeuronalNetClient.Pages.NumberDraw
 
         #region Methods
 
+        private async Task UploadBitmaps()
+        {
+            var bitmaps = ConvertGeneratedBitmaps();
+
+            using (var streamingCall = GrpcUploader.SendBitmapData())
+            {
+                foreach (BitmapData bitmap in bitmaps)
+                {
+                    await streamingCall.RequestStream.WriteAsync(bitmap);
+                }
+                await streamingCall.RequestStream.CompleteAsync();
+            }
+        }
+
         private void OnNumberButtonClicked(int number)
         {
             return;
         }
 
-        private async Task UploadGeneratedBitmaps()
+        private List<BitmapData> ConvertGeneratedBitmaps()
         {
-            var uploader = new GrpcUploader("http://localhost:5018");
+            //TODO: get generated bitmaps and convert them to BitmapData objects
 
             var bitmaps = new List<BitmapData>()
             {
@@ -38,7 +54,7 @@ namespace NeuronalNetClient.Pages.NumberDraw
                 new BitmapData() { Number = 2, Bitmap = ByteString.CopyFrom(new byte[] {1,0,1}) }
             };
 
-            await uploader.UploadBitmaps(bitmaps);
+            return bitmaps;
         }
 
         
