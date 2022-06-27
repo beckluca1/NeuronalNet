@@ -7,8 +7,8 @@ namespace NeuronalNetServer.NeuronalNetStructure
 
         public ComplexNeuralNet()
         {
+            frontNet = new ConvolutionalNet(5, new int[] {1,10,20,50,100}, new int[] {3,3,3,3,1}, new int[] {2,2,2,2,1});
             backNet = new NeuronalNet(3, new int[] {50,20,10});
-            frontNet = new ConvolutionalNet(3, new int[] {10,20,50}, new int[] {3,3,3}, new int[] {2,2,2});
         }
 
         public void Update(List<float> input)

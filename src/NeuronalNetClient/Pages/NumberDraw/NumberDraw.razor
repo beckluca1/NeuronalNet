@@ -3,6 +3,9 @@
 <PageTitle>Number Draw</PageTitle>
 
 <body>
+
+<frame @onload='@(() => CallJSFunction("init"))'></frame>
+
 <h1>Number Draw</h1>
 
 <p>
@@ -57,6 +60,12 @@
 <canvas id="image" width="300" height="300"></canvas>
 
 <!--<br><br/>-->
+
+<br><br/>
+
+<p>Wählen Sie Dateien aus. Von Bildern werden Vorschaubilder erzeugt.</p>
+<input type="file" id="files" name="files[]" single />
+<output id="list"></output>
 
 <br><br/>
 

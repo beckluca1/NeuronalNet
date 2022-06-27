@@ -1,23 +1,23 @@
-function printText()
+function init()
 {
-    console.log("Yes");
+    document.getElementById('files').addEventListener('change', dateiauswahl, false);
 }
 
-let imageWidth = 5;
+let imageWidth = 7;
 let imageHeight = 7;
-let pixelSize = 30;
+let pixelSize = 40;
 
 var pixelData = [];
-pixelData[0] = [0,0,0,0,0, 0,1,1,1,0, 0,1,0,1,0, 0,1,0,1,0, 0,1,0,1,0, 0,1,1,1,0, 0,0,0,0,0];
-pixelData[1] = [0,0,0,0,0, 0,0,0,1,0, 0,0,0,1,0, 0,0,0,1,0, 0,0,0,1,0, 0,0,0,1,0, 0,0,0,0,0];
-pixelData[2] = [0,0,0,0,0, 0,1,1,1,0, 0,0,0,1,0, 0,1,1,1,0, 0,1,0,0,0, 0,1,1,1,0, 0,0,0,0,0];
-pixelData[3] = [0,0,0,0,0, 0,1,1,1,0, 0,0,0,1,0, 0,1,1,1,0, 0,0,0,1,0, 0,1,1,1,0, 0,0,0,0,0];
-pixelData[4] = [0,0,0,0,0, 0,1,0,1,0, 0,1,0,1,0, 0,1,1,1,0, 0,0,0,1,0, 0,0,0,1,0, 0,0,0,0,0];
-pixelData[5] = [0,0,0,0,0, 0,1,1,1,0, 0,1,0,0,0, 0,1,1,1,0, 0,0,0,1,0, 0,1,1,1,0, 0,0,0,0,0];
-pixelData[6] = [0,0,0,0,0, 0,1,1,1,0, 0,1,0,0,0, 0,1,1,1,0, 0,1,0,1,0, 0,1,1,1,0, 0,0,0,0,0];
-pixelData[7] = [0,0,0,0,0, 0,1,1,1,0, 0,0,0,1,0, 0,0,0,1,0, 0,0,0,1,0, 0,0,0,1,0, 0,0,0,0,0];
-pixelData[8] = [0,0,0,0,0, 0,1,1,1,0, 0,1,0,1,0, 0,1,1,1,0, 0,1,0,1,0, 0,1,1,1,0, 0,0,0,0,0];
-pixelData[9] = [0,0,0,0,0, 0,1,1,1,0, 0,1,0,1,0, 0,1,1,1,0, 0,0,0,1,0, 0,1,1,1,0, 0,0,0,0,0];
+pixelData[0] = [0,0,0,0,0,0,0, 0,1,1,1,0,0,0, 0,1,0,1,0,0,0, 0,1,0,1,0,0,0, 0,1,0,1,0,0,0, 0,1,1,1,0,0,0, 0,0,0,0,0,0,0];
+pixelData[1] = [0,0,0,0,0,0,0, 0,0,0,1,0,0,0, 0,0,0,1,0,0,0, 0,0,0,1,0,0,0, 0,0,0,1,0,0,0, 0,0,0,1,0,0,0, 0,0,0,0,0,0,0];
+pixelData[2] = [0,0,0,0,0,0,0, 0,1,1,1,0,0,0, 0,0,0,1,0,0,0, 0,1,1,1,0,0,0, 0,1,0,0,0,0,0, 0,1,1,1,0,0,0, 0,0,0,0,0,0,0];
+pixelData[3] = [0,0,0,0,0,0,0, 0,1,1,1,0,0,0, 0,0,0,1,0,0,0, 0,1,1,1,0,0,0, 0,0,0,1,0,0,0, 0,1,1,1,0,0,0, 0,0,0,0,0,0,0];
+pixelData[4] = [0,0,0,0,0,0,0, 0,1,0,1,0,0,0, 0,1,0,1,0,0,0, 0,1,1,1,0,0,0, 0,0,0,1,0,0,0, 0,0,0,1,0,0,0, 0,0,0,0,0,0,0];
+pixelData[5] = [0,0,0,0,0,0,0, 0,1,1,1,0,0,0, 0,1,0,0,0,0,0, 0,1,1,1,0,0,0, 0,0,0,1,0,0,0, 0,1,1,1,0,0,0, 0,0,0,0,0,0,0];
+pixelData[6] = [0,0,0,0,0,0,0, 0,1,1,1,0,0,0, 0,1,0,0,0,0,0, 0,1,1,1,0,0,0, 0,1,0,1,0,0,0, 0,1,1,1,0,0,0, 0,0,0,0,0,0,0];
+pixelData[7] = [0,0,0,0,0,0,0, 0,1,1,1,0,0,0, 0,0,0,1,0,0,0, 0,0,0,1,0,0,0, 0,0,0,1,0,0,0, 0,0,0,1,0,0,0, 0,0,0,0,0,0,0];
+pixelData[8] = [0,0,0,0,0,0,0, 0,1,1,1,0,0,0, 0,1,0,1,0,0,0, 0,1,1,1,0,0,0, 0,1,0,1,0,0,0, 0,1,1,1,0,0,0, 0,0,0,0,0,0,0];
+pixelData[9] = [0,0,0,0,0,0,0, 0,1,1,1,0,0,0, 0,1,0,1,0,0,0, 0,1,1,1,0,0,0, 0,0,0,1,0,0,0, 0,1,1,1,0,0,0, 0,0,0,0,0,0,0];
 
 function fillCanvas(number)
 {
@@ -32,5 +32,33 @@ function fillCanvas(number)
             ctx.fillStyle = 'rgb('+color+','+color+','+color+')'
             ctx.fillRect(i*pixelSize, j*pixelSize, pixelSize, pixelSize);
         }
+    }
+
+    var img = document.getElementById('list');
+    //canvas.width = img.width;
+    //canvas.height = img.height;
+    ctx.drawImage(img, 0, 0 );
+    var myData = ctx.getImageData(0, 0, img.width, img.height);
+}
+
+function dateiauswahl(evt) {
+    var dateien = evt.target.files; // FileList object
+    // Auslesen der gespeicherten Dateien durch Schleife
+    f = dateien[0];
+    // nur Bild-Dateien
+    if (f.type.match('image.*')) 
+    {
+        var reader = new FileReader();
+        reader.onload = (function (theFile) {
+        return function (e) {
+            // erzeuge Thumbnails.
+            var vorschau = document.createElement('img');
+            vorschau.src = e.target.result;
+            vorschau.id = 'list';
+            document.getElementById('list').replaceWith(vorschau);
+        };
+        })(f);
+        // Bilder als Data URL auslesen.
+        reader.readAsDataURL(f);
     }
 }

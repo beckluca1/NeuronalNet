@@ -25,13 +25,13 @@ namespace NeuronalNetServer.NeuronalNetStructure
             mapSize = inMapSize;
             poolingMapSize = inMapSize;
 
-            for(int x=0;x<=mapSize;x++)
+            for(int x=0;x<mapSize;x++)
             {
                 activations.Add(new List<float>());
                 values.Add(new List<float>());
                 dValues.Add(new List<float>());
 
-                for(int y=0;y<=mapSize;y++)
+                for(int y=0;y<mapSize;y++)
                 {
                     activations[x].Add(0);
                     values[x].Add(0);
@@ -39,13 +39,13 @@ namespace NeuronalNetServer.NeuronalNetStructure
                 }
             }
 
-            for(int x=0;x<=poolingMapSize;x++)
+            for(int x=0;x<poolingMapSize;x++)
             {
                 poolingActivations.Add(new List<float>());
                 poolingValues.Add(new List<float>());
                 dPoolingValues.Add(new List<float>());
 
-                for(int y=0;y<=poolingMapSize;y++)
+                for(int y=0;y<poolingMapSize;y++)
                 {
                     poolingActivations[x].Add(0);
                     poolingValues[x].Add(0);
@@ -64,13 +64,13 @@ namespace NeuronalNetServer.NeuronalNetStructure
             poolingSize = inPoolingKernel.GetKernelSize();
             poolingMapSize = mapSize/poolingSize;
 
-            for(int x=0;x<=mapSize;x++)
+            for(int x=0;x<mapSize;x++)
             {
                 activations.Add(new List<float>());
                 values.Add(new List<float>());
                 dValues.Add(new List<float>());
 
-                for(int y=0;y<=mapSize;y++)
+                for(int y=0;y<mapSize;y++)
                 {
                     activations[x].Add(0);
                     values[x].Add(0);
@@ -78,13 +78,13 @@ namespace NeuronalNetServer.NeuronalNetStructure
                 }
             }
 
-            for(int x=0;x<=poolingMapSize;x++)
+            for(int x=0;x<poolingMapSize;x++)
             {
                 poolingActivations.Add(new List<float>());
                 poolingValues.Add(new List<float>());
                 dPoolingValues.Add(new List<float>());
 
-                for(int y=0;y<=poolingMapSize;y++)
+                for(int y=0;y<poolingMapSize;y++)
                 {
                     poolingActivations[x].Add(0);
                     poolingValues[x].Add(0);
@@ -96,16 +96,16 @@ namespace NeuronalNetServer.NeuronalNetStructure
         public void Update() 
         {
             int mD = mapDifference;
-            for(int x=mD;x<=mapSize+mD;x++)
+            for(int x=mD;x<mapSize+mD;x++)
             {
-                for(int y=mD;y<=mapSize+mD;y++)
+                for(int y=mD;y<mapSize+mD;y++)
                 {
                     activations[x-mD][y-mD] = 0;
-                    for(int i=0;i<=previousMaps.Count;i++)
+                    for(int i=0;i<previousMaps.Count;i++)
                     {
-                        for(int dX=-mD;dX<=mD;dX++)
+                        for(int dX=-mD;dX<mD;dX++)
                         {
-                            for(int dY=-mD;dY<=mD;dY++)
+                            for(int dY=-mD;dY<mD;dY++)
                             {
                                 activations[x-mD][y-mD] += previousMaps[i].poolingValues[x+dX][y+dY]*neuralKernels[i].getWeights()[dX][dY];
                             }
@@ -115,14 +115,14 @@ namespace NeuronalNetServer.NeuronalNetStructure
                 }
             }
 
-            for(int x=0;x<=poolingMapSize;x++)
+            for(int x=0;x<poolingMapSize;x++)
             {
-                for(int y=0;y<=poolingMapSize;y++)
+                for(int y=0;y<poolingMapSize;y++)
                 {
                     poolingActivations[x][y] = 0;
-                    for(int dX=0;dX<=poolingSize;dX++)
+                    for(int dX=0;dX<poolingSize;dX++)
                     {
-                        for(int dY=0;dY<=poolingSize;dY++)
+                        for(int dY=0;dY<poolingSize;dY++)
                         {
                             poolingActivations[x][y] += values[x*poolingSize+dX][y*poolingSize+dY]*poolingKernel.getWeights()[dX][dY];
                         }
@@ -135,9 +135,9 @@ namespace NeuronalNetServer.NeuronalNetStructure
 
         public void SetValues(List<float> inValues)
         {
-            for(int x=0;x<=mapSize;x++)
+            for(int x=0;x<mapSize;x++)
             {
-                for(int y=0;y<=mapSize;y++)
+                for(int y=0;y<mapSize;y++)
                 {
                     dValues[x][y] = inValues[y*mapSize+x];
                 }
@@ -158,16 +158,16 @@ namespace NeuronalNetServer.NeuronalNetStructure
         public void CalculateChanges()
         {
             int mD = mapDifference;
-            for(int x=mD;x<=mapSize+mD;x++)
+            for(int x=mD;x<mapSize+mD;x++)
             {
-                for(int y=mD;y<=mapSize+mD;y++)
+                for(int y=mD;y<mapSize+mD;y++)
                 {
                     activations[x-mD][y-mD] = 0;
-                    for(int i=0;i<=previousMaps.Count;i++)
+                    for(int i=0;i<previousMaps.Count;i++)
                     {
-                        for(int dX=-mD;dX<=mD;dX++)
+                        for(int dX=-mD;dX<mD;dX++)
                         {
-                            for(int dY=-mD;dY<=mD;dY++)
+                            for(int dY=-mD;dY<mD;dY++)
                             {
                                 neuralKernels[i].AddDWeight(dX,dY,previousMaps[i].poolingValues[x+dX][y+dY]*Global.DSigmoid(activations[x-mD][y-mD])*dValues[x-mD][y-mD]/(previousMaps.Count*previousMaps[0].mapSize*previousMaps[0].mapSize));
                                 previousMaps[i].dPoolingValues[x+dX][y+dY] += neuralKernels[i].getWeights()[dX][dY]*Global.DSigmoid(activations[x-mD][y-mD])*dValues[x-mD][y-mD]/(previousMaps.Count*previousMaps[0].mapSize*previousMaps[0].mapSize);
@@ -177,14 +177,14 @@ namespace NeuronalNetServer.NeuronalNetStructure
                 }
             }
 
-            for(int x=0;x<=poolingMapSize;x++)
+            for(int x=0;x<poolingMapSize;x++)
             {
-                for(int y=0;y<=poolingMapSize;y++)
+                for(int y=0;y<poolingMapSize;y++)
                 {
                     poolingActivations[x][y] = 0;
-                    for(int dX=0;dX<=poolingSize;dX++)
+                    for(int dX=0;dX<poolingSize;dX++)
                     {
-                        for(int dY=0;dY<=poolingSize;dY++)
+                        for(int dY=0;dY<poolingSize;dY++)
                         {
                             poolingKernel.AddDWeight(dX,dY,values[x*poolingSize+dX][y*poolingSize+dY]*Global.DSigmoid(poolingActivations[x][y])*dPoolingValues[x][y]/(mapSize*mapSize));
                             dValues[x*poolingSize+dX][y*poolingSize+dY] += poolingKernel.getWeights()[dX][dY]*Global.DSigmoid(poolingActivations[x][y])*dPoolingValues[x][y]/(mapSize*mapSize);                        }
@@ -205,11 +205,11 @@ namespace NeuronalNetServer.NeuronalNetStructure
         {
             kernelSize = inKernelSize;
 
-            for(int x=0;x<=kernelSize;x++)
+            for(int x=0;x<kernelSize;x++)
             {
                 weights.Add(new List<float>());
                 dWeights.Add(new List<float>());
-                for(int y=0;y<=kernelSize;y++)
+                for(int y=0;y<kernelSize;y++)
                 {
                     weights[x].Add(Global.RandomFloat(-1,1));
                     dWeights[x].Add(0);
@@ -219,9 +219,9 @@ namespace NeuronalNetServer.NeuronalNetStructure
 
         public void Improve()
         {
-            for(int x=0;x<=kernelSize;x++)
+            for(int x=0;x<kernelSize;x++)
             {
-                for(int y=0;y<=kernelSize;y++)
+                for(int y=0;y<kernelSize;y++)
                 {
                     weights[x][y] += dWeights[x][y];
                 }
@@ -264,16 +264,24 @@ namespace NeuronalNetServer.NeuronalNetStructure
             poolingSize = inPoolingSize;
 
             int inputSize = 1;
-            for(int i=layerCount-1;i>0;i--)
+            for(int i=layerCount-2;i>=0;i--)
             {
                 inputSize *= inPoolingSize[i];
-                inputSize += (inConvolutionalSize[i]-1)/2;
+                inputSize += (inConvolutionalSize[i]-1);
             }
+
+            Console.WriteLine("Net has an input size of " + inputSize);
+
 
             neuralMaps.Add(new List<NeuralMap>());
             neuralMaps[0].Add(new NeuralMap(inputSize));
 
-            for(int i=0;i<=layerCount;i++)
+            neuralKernels.Add(new List<NeuralKernel>());
+            neuralKernels[0].Add(new NeuralKernel(convolutionalSize[0]));
+
+            poolingKernels.Add(new NeuralKernel(poolingSize[0]));
+
+            for(int i=1;i<layerCount;i++)
             {
                 neuralMaps.Add(new List<NeuralMap>());
                 neuralKernels.Add(new List<NeuralKernel>());
@@ -282,7 +290,7 @@ namespace NeuronalNetServer.NeuronalNetStructure
                     neuralMaps[i].Add(new NeuralMap(neuralKernels[i-1],poolingKernels[i-1],neuralMaps[i-1]));
                     neuralKernels[i].Add(new NeuralKernel(convolutionalSize[i]));
                 }
-                poolingKernels[i] = new NeuralKernel(poolingSize[i]);
+                poolingKernels.Add(new NeuralKernel(poolingSize[i]));
             }
         }
 
@@ -303,7 +311,7 @@ namespace NeuronalNetServer.NeuronalNetStructure
 
         public void Update()
         {
-            for(int i=0;i<=layerCount;i++)
+            for(int i=0;i<layerCount;i++)
             {
                 for(int l=0;l<layerSize[i];l++)
                 {
@@ -315,12 +323,12 @@ namespace NeuronalNetServer.NeuronalNetStructure
 
         public void CalculateChanges(List<float> dValues)
         {
-            for(int i=0;i<=layerSize[layerCount-1];i++)
+            for(int i=0;i<layerSize[layerCount-1];i++)
             {
                 neuralMaps[layerCount-1][i].CalculateChanges(dValues[i]);
             }
             
-            for(int i=layerCount-2;i>0;i--)
+            for(int i=layerCount-2;i>=0;i--)
             {
                 for(int l=0;l<layerSize[i];l++)
                 {

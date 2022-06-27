@@ -2,11 +2,16 @@ using NeuronalNetServer.NeuronalNetStructure;
 
 namespace NeuronalNetServer.Services
 {
-    public class Calculator
+    public class NeuralCalculator
     {
-        ComplexNeuralNet net = new ComplexNeuralNet();
+        ComplexNeuralNet net;
 
         Dictionary<int[],List<float>> trainngData = new Dictionary<int[], List<float>>();
+
+        public NeuralCalculator()
+        {
+            net = new ComplexNeuralNet();
+        }
 
         public void Calculate(int number,int index)
         {
