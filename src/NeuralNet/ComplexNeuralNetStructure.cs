@@ -1,6 +1,6 @@
-namespace NeuronalNetServer.NeuronalNetStructure
+namespace NeuralNet
 {
-    class ComplexNeuralNet
+    public class ComplexNeuralNet
     {
         NeuronalNet backNet;
         ConvolutionalNet frontNet;

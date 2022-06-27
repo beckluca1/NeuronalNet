@@ -1,4 +1,4 @@
-using NeuronalNetServer.NeuronalNetStructure;
+using NeuralNet;
 
 namespace NeuronalNetServer.Services
 {
