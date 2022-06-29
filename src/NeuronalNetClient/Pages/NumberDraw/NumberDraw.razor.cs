@@ -1,6 +1,8 @@
 using Google.Protobuf;
 using NeuronalNetClient.Proto;
 
+using System.Reflection;
+
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
@@ -61,6 +63,16 @@ namespace NeuronalNetClient.Pages.NumberDraw
         private async Task CallJSFunction(String function, params Object[] args)
         { 
             await JSRuntime.InvokeVoidAsync(function, args);
+        }
+
+        [JSInvokable]
+        public static void GetImageData(int[] data)
+        {
+            Console.WriteLine("Got Data");
+            for(int i=1;i<data[0]*data[0];i++) 
+            {
+                Console.WriteLine(data[i*3]+" "+data[i*3+1]+" "+data[i*3+2]);
+            }
         }
 
         #endregion
