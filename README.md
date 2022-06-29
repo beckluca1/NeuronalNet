@@ -18,3 +18,10 @@ WORK IN PROGRESS
 ## Server - Side
 
 WORK IN PROGRESS
+
+## Environment Variables
+
+| Key                         | Value                               |
+|:---------------------------:|:-----------------------------------:|
+| MARIADB_PASSWORD            | database user password              |
+| NEURO__DB_CONNECTION_STRING | credentials for database connection |
