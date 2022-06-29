@@ -30,15 +30,26 @@ function fillCanvas(number)
         {
             let color = 255*+pixelData[number][j*imageWidth+i];
             ctx.fillStyle = 'rgb('+color+','+color+','+color+')'
-            ctx.fillRect(i*pixelSize, j*pixelSize, pixelSize, pixelSize);
+            //ctx.fillRect(i*pixelSize, j*pixelSize, pixelSize, pixelSize);
         }
     }
 
     var img = document.getElementById('list');
-    //canvas.width = img.width;
-    //canvas.height = img.height;
+    canvas.width = img.width;
+    canvas.height = img.height;
     ctx.drawImage(img, 0, 0 );
     var myData = ctx.getImageData(0, 0, img.width, img.height);
+    var allData = [];
+    let brightness = [];
+    allData.push(img.width);
+    for (var i=0;i<myData.data.length;i+=4)
+    {
+        allData.push(myData.data[i]);
+        allData.push(myData.data[i+1]);
+        allData.push(myData.data[i+2]);
+    }
+    DotNet.invokeMethod('NeuronalNetClient', 'GetImageData', allData); 
+
 }
 
 function dateiauswahl(evt) {
