@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   mariadb:
-    container_name: MariaDB
+    container_name: MariaDBNeuro
     image: mariadb
     restart: always
     environment:
@@ -11,10 +11,10 @@ services:
       MARIADB_ROOT_PASSWORD: ${MARIADB_PASSWORD}
       MARIADB_DATABASE: neuronalnet
     ports:
-      - 3306:3306
+      - 3000:3000
     volumes:
       - /var/lib/mysql:/var/lib/mysql
-      - NeuronalNetServer/Migrations:/docker-entrypoint-initdb.d
+      - ./NeuronalNetServer/Migrations:/docker-entrypoint-initdb.d
 
   neuronalnetserver:
     container_name: NeuronalNetServer
@@ -28,7 +28,6 @@ services:
     depends_on:
       - mariadb
       
-
   neuronalnetclient:
     container_name: NeuronalNetClient
     image: neuronalnetclient

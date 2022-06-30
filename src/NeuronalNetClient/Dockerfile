@@ -11,6 +11,6 @@ RUN dotnet publish NeuronalNetClient/NeuronalNetClient.csproj -c Release -o bin/
 FROM nginx AS runner
 WORKDIR /var/www/web
 COPY --from=publish /src/bin/Release/net/wwwroot .
-COPY NeuronalNetServer/nginx.conf /etc/nginx/nginx.conf
+COPY NeuronalNetClient/nginx.conf /etc/nginx/nginx.conf
 EXPOSE 80
 EXPOSE 443
