@@ -24,8 +24,10 @@ services:
       context: .
       dockerfile: NeuronalNetServer/Dockerfile
     ports:
-      - 80:80
-      - 443:443
+      - 7613:7613
+    depends_on:
+      - mariadb
+      
 
   neuronalnetclient:
     container_name: NeuronalNetClient
@@ -35,6 +37,7 @@ services:
       context: .
       dockerfile: NeuronalNetClient/Dockerfile
     ports:
-     - 7613:7613
+      - 80:80
+      - 443:443
     depends_on:
       - neuronalnetserver
