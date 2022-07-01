@@ -275,10 +275,16 @@ namespace NeuralNet
 
             neuralMaps.Add(new List<NeuralMap>());
             neuralMaps[0].Add(new NeuralMap(inputSize));
+            neuralMaps[0].Add(new NeuralMap(inputSize));
+            neuralMaps[0].Add(new NeuralMap(inputSize));
 
             neuralKernels.Add(new List<NeuralKernel>());
             neuralKernels[0].Add(new NeuralKernel(convolutionalSize[0]));
+            neuralKernels[0].Add(new NeuralKernel(convolutionalSize[0]));
+            neuralKernels[0].Add(new NeuralKernel(convolutionalSize[0]));
 
+            poolingKernels.Add(new NeuralKernel(poolingSize[0]));
+            poolingKernels.Add(new NeuralKernel(poolingSize[0]));
             poolingKernels.Add(new NeuralKernel(poolingSize[0]));
 
             for(int i=1;i<layerCount;i++)
@@ -294,9 +300,11 @@ namespace NeuralNet
             }
         }
 
-        public void SetInput(List<float> input)
+        public void SetInput(List<float> inputR, List<float> inputG, List<float> inputB)
         {
-            neuralMaps[0][0].SetValues(input);
+            neuralMaps[0][0].SetValues(inputR);
+            neuralMaps[0][1].SetValues(inputG);
+            neuralMaps[0][2].SetValues(inputB);
         }
 
         public List<float> getOutput()
