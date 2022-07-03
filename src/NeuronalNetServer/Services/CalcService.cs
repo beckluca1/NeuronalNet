@@ -13,8 +13,6 @@ namespace NeuronalNetServer.Services
 
         private ComplexNeuralNet _net;
 
-        Dictionary<int[], List<float>> trainngData = new Dictionary<int[], List<float>>();
-
         #endregion
 
         #region Constructor
@@ -29,14 +27,14 @@ namespace NeuronalNetServer.Services
 
         #region Methods
 
-        public void Calculate(int number, int index)
+        public void Calculate(int number, List<float> dataRed, List<float> dataGreen, List<float> dataBlue)
         {
             List<float> trainingValues = new List<float>();
             for (int i = 0; i <= 10; i++)
             {
                 trainingValues.Add(i == number ? 1 : 0);
             }
-            _net.Update(trainngData[new int[] { number, index }]);
+            _net.Update(dataRed,dataGreen,dataBlue);
             _net.CalculateChanges(trainingValues);
             _net.Improve();
         }

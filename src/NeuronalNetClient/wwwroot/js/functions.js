@@ -40,8 +40,8 @@ function fillCanvas(number)
     ctx.drawImage(img, 0, 0 );
     var myData = ctx.getImageData(0, 0, img.width, img.height);
     var allData = [];
-    let brightness = [];
     allData.push(img.width);
+    allData.push(number);
     for (var i=0;i<myData.data.length;i+=4)
     {
         allData.push(myData.data[i]);

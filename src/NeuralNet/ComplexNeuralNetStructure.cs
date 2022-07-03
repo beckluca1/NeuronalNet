@@ -11,9 +11,9 @@ namespace NeuralNet
             backNet = new NeuronalNet(3, new int[] {50,20,10});
         }
 
-        public void Update(List<float> input)
+        public void Update(List<float> inputR, List<float> inputG, List<float> inputB)
         {
-            frontNet.SetInput(input);
+            frontNet.SetInput(inputR, inputG, inputB);
             frontNet.Update();
             backNet.SetInput(frontNet.getOutput());
             backNet.Update();
