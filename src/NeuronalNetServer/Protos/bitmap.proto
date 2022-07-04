@@ -6,6 +6,8 @@ package bitmap;
 
 service Uploader {
   rpc SendBitmapData (stream BitmapData) returns (SuccessReply);
+  rpc SendTrafficSign (TrafficSign) returns (SuccessReply);
+  rpc SendMultipleTrafficSigns (stream TrafficSign) returns (SuccessReply);
 }
 
 message BitmapData {
@@ -13,8 +15,24 @@ message BitmapData {
   bytes bitmap = 2;
 }
 
+message TrafficSign {
+  SignType sign_type = 1;
+  bytes red = 2;
+  bytes green = 3;
+  bytes blue = 4;
+}
+
 message SuccessReply {
   bool success = 1;
 }
 
 message Null {}
+
+enum SignType {
+  Stop = 0;
+  ThirtySpeedLimit = 1;
+  FiftySpeedLimit = 2;
+  PriorityRoad = 3;
+  GiveWay = 4;
+  Unclassified = 5;
+}

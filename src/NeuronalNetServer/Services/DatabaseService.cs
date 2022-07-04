@@ -1,7 +1,6 @@
-using NeuralNet.Helpers;
 using NeuronalNetServer.Helpers;
 using MySql.Data.MySqlClient;
-
+using NeuronalNetServer.Proto;
 
 namespace NeuronalNetServer.Services
 {
@@ -28,7 +27,7 @@ namespace NeuronalNetServer.Services
             OpenConnection(connectionString);
         }
 
-        public List<FloatBitmapData> GetAllTrafficSigns(int limit = 0)
+        public List<TrafficSign> GetAllTrafficSigns(int limit = 0)
         {
             string sqlSelect = "select * from traffic_sign";
 
@@ -37,12 +36,12 @@ namespace NeuronalNetServer.Services
 
             var data = command.ExecuteReader();
 
-            var floatBitmapList = ConvertTrafficSignReader(data);
+            var floatBitmapList = BuildTrafficSignList(data);
 
             return floatBitmapList;
         }
 
-        public List<FloatBitmapData> GetTrafficSignType(TrafficSignType trafficSignType)
+        public List<TrafficSign> GetTrafficSignType(SignType trafficSignType)
         {
             string sqlSelect = "select * from traffic_sign where sign_type = @TYPE";
 
@@ -52,26 +51,21 @@ namespace NeuronalNetServer.Services
 
             var data = command.ExecuteReader();
 
-            var floatBitmapList = ConvertTrafficSignReader(data);
+            var floatBitmapList = BuildTrafficSignList(data);
 
             return floatBitmapList;
         }
 
-        public void InsertTrafficSign(TrafficSignType trafficSignType, FloatBitmapData bitmapData)
+        public void InsertTrafficSign(TrafficSign trafficSign)
         {
-            var binaryBitmap = bitmapData.ConvertToBinary();
-
-            if (binaryBitmap == null)
-                return;
-
             string sqlInsert = @"insert into traffic_sign (sign_type, red_data, green_data, blue_data, uploaded)
                                  values (@TYPE, @RED, @GREEN, @BLUE now())";
 
             MySqlParameter[] parameters = {
                 new MySqlParameter("@TYPE", ""),
-                new MySqlParameter("@RED", binaryBitmap.RedData),
-                new MySqlParameter("@GREEN", binaryBitmap.GreenData),
-                new MySqlParameter("@BLUE", binaryBitmap.BlueData)
+                new MySqlParameter("@RED", trafficSign.Red),
+                new MySqlParameter("@GREEN", trafficSign.Green),
+                new MySqlParameter("@BLUE", trafficSign.Blue)
             };                                 
 
             MySqlCommand command = new MySqlCommand(sqlInsert, _connection);
@@ -91,9 +85,9 @@ namespace NeuronalNetServer.Services
             _connection.Open();
         }
 
-        private List<FloatBitmapData> ConvertTrafficSignReader(MySqlDataReader reader)
+        private List<TrafficSign> BuildTrafficSignList(MySqlDataReader reader)
         {
-            var trafficSignList = new List<FloatBitmapData>();
+            var trafficSignList = new List<TrafficSign>();
 
             using (reader)
             {
@@ -111,9 +105,14 @@ namespace NeuronalNetServer.Services
                     reader.GetBytes(reader.GetOrdinal("blue_data"), 0, blueData, 0, BinaryDataLength);
 
                     //TODO: convert sign type
-                    var binaryBitmap = new BinaryBitmapData(redData, greenData, blueData);
+                    var trafficSign = new TrafficSign()
+                    {
+                        Red = Google.Protobuf.ByteString.CopyFrom(redData),
+                        Green = Google.Protobuf.ByteString.CopyFrom(greenData),
+                        Blue = Google.Protobuf.ByteString.CopyFrom(blueData)
+                    };
 
-                    trafficSignList.Add(binaryBitmap.ConvertToFloat());
+                    trafficSignList.Add(trafficSign);
                 }
             }
             return trafficSignList;
