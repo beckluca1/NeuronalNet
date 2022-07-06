@@ -9,6 +9,7 @@ namespace NeuronalNetServer.Helpers
             var builder = WebApplication.CreateBuilder();
 
             builder.Services.AddGrpc();
+            builder.Services.AddScoped<DatabaseService>();
 
             var app = builder.Build();
 

@@ -1,4 +1,5 @@
 using Grpc.Core;
+using NeuronalNetServer.Helpers;
 using NeuronalNetServer.Proto;
 
 namespace NeuronalNetServer.Services
@@ -6,15 +7,22 @@ namespace NeuronalNetServer.Services
     public class UploadService : Uploader.UploaderBase
     {
         #region Fields
+        private Credentials _credentials = default!;
         private readonly ILogger<UploadService> _logger;
+        private readonly DatabaseService _dbService;
 
         #endregion
 
         #region Constructor
 
-        public UploadService(ILogger<UploadService> logger)
+        public UploadService(ILogger<UploadService> logger, DatabaseService dbService)
         {
             _logger = logger;
+            _dbService = dbService;
+
+            GetConfiguration();
+            InitiliazeServices();
+
         }
 
         #endregion
@@ -38,8 +46,11 @@ namespace NeuronalNetServer.Services
 
         public override Task<SuccessReply> SendTrafficSign(TrafficSign request, ServerCallContext context)
         {
-            //TODO: process traffic sign
-            return base.SendTrafficSign(request, context);
+            _dbService.InsertTrafficSign(request);
+
+            var reply = new SuccessReply() { Success = true };
+
+            return Task.FromResult(reply);
         }
 
         public override async Task<SuccessReply> SendMultipleTrafficSigns(IAsyncStreamReader<TrafficSign> requestStream, ServerCallContext context)
@@ -48,7 +59,7 @@ namespace NeuronalNetServer.Services
             {
                 var trafficSignData = requestStream.Current;
 
-                //TODO: process traffic sign
+                _dbService.InsertTrafficSign(trafficSignData);
             }
 
             return new SuccessReply()
@@ -56,6 +67,25 @@ namespace NeuronalNetServer.Services
                 Success = true
             };
 
+        }
+
+        private void InitiliazeServices()
+        {
+            _dbService.Initialize(_credentials!.DbConnectionString!);
+        }
+
+        private void GetConfiguration()
+        {
+            var config = new ConfigurationBuilder()
+                .AddUserSecrets<Program>(optional: true)
+                .AddEnvironmentVariables()
+                .Build();
+            var neuroSection = config.GetSection("NEURO");
+
+            _credentials = new Credentials
+            {
+                DbConnectionString = neuroSection["DB_CONNECTION_STRING"],
+            };
         }
 
         #endregion

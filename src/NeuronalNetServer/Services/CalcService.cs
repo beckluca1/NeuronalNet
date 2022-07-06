@@ -7,10 +7,6 @@ namespace NeuronalNetServer.Services
     {
         #region Fields
 
-        private Credentials _credentials;
-
-        private IServiceProvider _services;
-
         private ComplexNeuralNet _net;
 
         #endregion
@@ -19,8 +15,7 @@ namespace NeuronalNetServer.Services
 
         public NeuralCalculator()
         {
-            ConfigureServices();
-            InitializeServices();
+            _net = new ComplexNeuralNet();
         }
 
         #endregion
@@ -37,41 +32,6 @@ namespace NeuronalNetServer.Services
             _net.Update(dataRed,dataGreen,dataBlue);
             _net.CalculateChanges(trainingValues);
             _net.Improve();
-        }
-
-        private void ConfigureServices()
-        {
-            _services = new ServiceCollection()
-            .AddSingleton<DatabaseService>()
-            .AddSingleton<ComplexNeuralNet>()
-            .BuildServiceProvider();
-        }
-
-        private void InitializeServices()
-        {
-            _net = _services.GetRequiredService<ComplexNeuralNet>();
-
-            var dbService = _services.GetRequiredService<DatabaseService>();
-
-            if (_credentials.DbConnectionString == null)
-                return;
-                //throw new Exception("No database connection string has been provided.");
-
-            dbService.Initialize(_credentials.DbConnectionString);
-        }
-
-        private void GetConfiguration()
-        {
-            var config = new ConfigurationBuilder()
-                .AddUserSecrets<Program>(optional: true)
-                .AddEnvironmentVariables()
-                .Build();
-            var neuroSection = config.GetSection("NEURO");
-
-            _credentials = new Credentials
-            {
-                DbConnectionString = neuroSection["DB_CONNECTION_STRING"],
-            };
         }
 
         #endregion

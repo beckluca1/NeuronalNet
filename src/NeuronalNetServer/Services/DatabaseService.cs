@@ -9,7 +9,7 @@ namespace NeuronalNetServer.Services
         #region Fields
 
         const int BinaryDataLength = 46 * 4;
-        private MySqlConnection _connection;
+        private MySqlConnection _connection = default!;
 
         #endregion
 
