@@ -70,7 +70,7 @@ namespace NeuronalNetClient.Pages.NumberDraw
         {
             int number = data[1];
             Console.WriteLine("Got Data");
-            for(int i=1;i<data[0]*data[0]+2;i++) 
+            for(int i=2;i<data[0]*data[0]+2;i++) 
             {
                 Console.WriteLine(data[i*3]+" "+data[i*3+1]+" "+data[i*3+2]);
             }
