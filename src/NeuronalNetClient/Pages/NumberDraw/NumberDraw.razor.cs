@@ -27,18 +27,10 @@ namespace NeuronalNetClient.Pages.NumberDraw
 
         #region Methods
 
-        private async Task UploadBitmaps()
+        private void UploadTrafficSign()
         {
-            var bitmaps = ConvertGeneratedBitmaps();
-
-            using (var streamingCall = GrpcUploader.SendBitmapData())
-            {
-                foreach (BitmapData bitmap in bitmaps)
-                {
-                    await streamingCall.RequestStream.WriteAsync(bitmap);
-                }
-                await streamingCall.RequestStream.CompleteAsync();
-            }
+            var trafficSign = GenerateRandomTraffigSign();
+            GrpcUploader.SendTrafficSign(trafficSign);
         }
 
         private void OnNumberButtonClicked(int number)
@@ -46,19 +38,26 @@ namespace NeuronalNetClient.Pages.NumberDraw
             return;
         }
 
-        private List<BitmapData> ConvertGeneratedBitmaps()
+        private TrafficSign GenerateRandomTraffigSign()
         {
-            //TODO: get generated bitmaps and convert them to BitmapData objects
+            var random = new Random();
 
-            var bitmaps = new List<BitmapData>()
+            byte[] red = new byte[46 * 4];
+            byte[] green = new byte[46 * 4];
+            byte[] blue = new byte[46 * 4];
+
+            random.NextBytes(red);
+            random.NextBytes(green);
+            random.NextBytes(blue);
+
+            return new TrafficSign()
             {
-                new BitmapData() { Number = 1, Bitmap = ByteString.CopyFrom(new byte[] {0,1,0}) },
-                new BitmapData() { Number = 2, Bitmap = ByteString.CopyFrom(new byte[] {1,0,1}) }
-            };
-
-            return bitmaps;
+                SignType = SignType.Unclassified,
+                Red = Google.Protobuf.ByteString.CopyFrom(red),
+                Green = Google.Protobuf.ByteString.CopyFrom(green),
+                Blue = Google.Protobuf.ByteString.CopyFrom(blue)
+            };  
         }
-
         
         private async Task CallJSFunction(String function, params Object[] args)
         { 
