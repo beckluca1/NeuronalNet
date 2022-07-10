@@ -13,7 +13,7 @@ builder.Services.AddSingleton(services =>
     {
         //TODO: add TLS and address
         var httpHandler = new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler());
-        var grpcChannel = GrpcChannel.ForAddress("http://localhost:5018", new GrpcChannelOptions { HttpHandler = httpHandler });
+        var grpcChannel = GrpcChannel.ForAddress("https://localhost:7285", new GrpcChannelOptions { HttpHandler = httpHandler });
         return new Uploader.UploaderClient(grpcChannel);
     }
 );

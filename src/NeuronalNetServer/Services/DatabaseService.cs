@@ -8,7 +8,7 @@ namespace NeuronalNetServer.Services
     {
         #region Fields
 
-        const int BinaryDataLength = 46 * 4;
+        const int BinaryDataLength = 46 * 46;
         private MySqlConnection _connection = default!;
 
         #endregion
@@ -92,7 +92,7 @@ namespace NeuronalNetServer.Services
             using (reader)
             {
                 if (!reader.HasRows)
-                return trafficSignList;
+                    return trafficSignList;
 
                 while (reader.Read())
                 {
