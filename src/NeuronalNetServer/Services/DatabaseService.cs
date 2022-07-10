@@ -46,7 +46,7 @@ namespace NeuronalNetServer.Services
             string sqlSelect = "select * from traffic_sign where sign_type = @TYPE";
 
             MySqlCommand command = new MySqlCommand(sqlSelect, _connection);
-            command.Parameters.AddWithValue("@TYPE", ""); //TODO: convert sign type
+            command.Parameters.AddWithValue("@TYPE", trafficSignType.ToString());
             command.Prepare();
 
             var data = command.ExecuteReader();
@@ -59,13 +59,13 @@ namespace NeuronalNetServer.Services
         public void InsertTrafficSign(TrafficSign trafficSign)
         {
             string sqlInsert = @"insert into traffic_sign (sign_type, red_data, green_data, blue_data, uploaded)
-                                 values (@TYPE, @RED, @GREEN, @BLUE now())";
+                                 values (@TYPE, @RED, @GREEN, @BLUE, now())";
 
             MySqlParameter[] parameters = {
-                new MySqlParameter("@TYPE", ""),
-                new MySqlParameter("@RED", trafficSign.Red),
-                new MySqlParameter("@GREEN", trafficSign.Green),
-                new MySqlParameter("@BLUE", trafficSign.Blue)
+                new MySqlParameter("@TYPE", trafficSign.SignType.ToString()),
+                new MySqlParameter("@RED", trafficSign.Red.ToByteArray()),
+                new MySqlParameter("@GREEN", trafficSign.Green.ToByteArray()),
+                new MySqlParameter("@BLUE", trafficSign.Blue.ToByteArray())
             };                                 
 
             MySqlCommand command = new MySqlCommand(sqlInsert, _connection);
@@ -96,6 +96,8 @@ namespace NeuronalNetServer.Services
 
                 while (reader.Read())
                 {
+                    SignType signType = ConvertStringToSignType(reader.GetString("sign_type"));
+
                     byte[] redData = new byte[BinaryDataLength];
                     byte[] greenData = new byte[BinaryDataLength];
                     byte[] blueData = new byte[BinaryDataLength];
@@ -104,9 +106,9 @@ namespace NeuronalNetServer.Services
                     reader.GetBytes(reader.GetOrdinal("green_data"), 0, greenData, 0, BinaryDataLength);
                     reader.GetBytes(reader.GetOrdinal("blue_data"), 0, blueData, 0, BinaryDataLength);
 
-                    //TODO: convert sign type
                     var trafficSign = new TrafficSign()
                     {
+                        SignType = signType,
                         Red = Google.Protobuf.ByteString.CopyFrom(redData),
                         Green = Google.Protobuf.ByteString.CopyFrom(greenData),
                         Blue = Google.Protobuf.ByteString.CopyFrom(blueData)
@@ -116,6 +118,15 @@ namespace NeuronalNetServer.Services
                 }
             }
             return trafficSignList;
+        }
+
+        private SignType ConvertStringToSignType(string signType)
+        {
+            SignType enumSignType = SignType.Unclassified;
+
+            Enum.TryParse(signType, out enumSignType);
+
+            return enumSignType;
         }
 
         #endregion
