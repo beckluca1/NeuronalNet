@@ -1,5 +1,6 @@
 using NeuralNet;
 using NeuronalNetServer.Helpers;
+using NeuronalNetServer.Proto;
 
 namespace NeuronalNetServer.Services
 {
@@ -8,6 +9,7 @@ namespace NeuronalNetServer.Services
         #region Fields
 
         private ComplexNeuralNet _net;
+        private readonly DatabaseService _dbService;
 
         #endregion
 
@@ -22,8 +24,24 @@ namespace NeuronalNetServer.Services
 
         #region Methods
 
+        public TrafficSign LoadImage(int number)
+        {
+            int maxIndex = 12;
+            int randomIndex = new Random().Next()%maxIndex;
+
+            TrafficSign sign = new TrafficSign();
+
+            //Load image
+
+            return sign;
+        }
+
         public void Calculate(int number, List<float> dataRed, List<float> dataGreen, List<float> dataBlue)
         {
+            TrafficSign loadedSign = LoadImage(number);
+
+            //Convert sign to image data
+
             List<float> trainingValues = new List<float>();
             for (int i = 0; i <= 10; i++)
             {

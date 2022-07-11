@@ -1,4 +1,5 @@
 using NeuronalNetServer.Services;
+using NeuronalNetServer.Proto;
 
 namespace NeuronalNetServer.Helpers
 {
@@ -21,7 +22,21 @@ namespace NeuronalNetServer.Helpers
 
         public static void StartNeuralNetService()
         {
-            //TODO: add processes of NeuralNet project
+            Console.WriteLine("Init Neural Net");
+
+            NeuralCalculator calculator = new NeuralCalculator();
+
+            int type = 0;
+
+            while(true)
+            {
+                type = type == 5 ? 0 : type+1;
+                
+                //calculator.Calculate(type);
+
+                Thread.Sleep(100);
+                Console.WriteLine("Calculate");
+            }
         }
     }
 }
