@@ -8,6 +8,7 @@ namespace NeuronalNetServer.Services
     {
         #region Fields
 
+        private Credentials _credentials = default!;
         private ComplexNeuralNet _net;
         private readonly DatabaseService _dbService;
 
@@ -17,6 +18,11 @@ namespace NeuronalNetServer.Services
 
         public NeuralCalculator()
         {
+            BuildConfiguration();
+
+            _dbService = new DatabaseService();
+            _dbService.Initialize(_credentials.DbConnectionString!);
+
             _net = new ComplexNeuralNet();
         }
 
@@ -27,7 +33,7 @@ namespace NeuronalNetServer.Services
         public TrafficSign LoadImage(int number)
         {
             int maxIndex = 12;
-            int randomIndex = new Random().Next()%maxIndex;
+            int randomIndex = new Random().Next() % maxIndex;
 
             TrafficSign sign = new TrafficSign();
 
@@ -47,9 +53,23 @@ namespace NeuronalNetServer.Services
             {
                 trainingValues.Add(i == number ? 1 : 0);
             }
-            _net.Update(dataRed,dataGreen,dataBlue);
+            _net.Update(dataRed, dataGreen, dataBlue);
             _net.CalculateChanges(trainingValues);
             _net.Improve();
+        }
+
+        private void BuildConfiguration()
+        {
+            var config = new ConfigurationBuilder()
+                .AddUserSecrets<Program>(optional: true)
+                .AddEnvironmentVariables()
+                .Build();
+            var neuroSection = config.GetSection("NEURO");
+
+            _credentials = new Credentials
+            {
+                DbConnectionString = neuroSection["DB_CONNECTION_STRING"],
+            };
         }
 
         #endregion
