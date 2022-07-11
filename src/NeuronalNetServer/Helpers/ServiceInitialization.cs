@@ -9,13 +9,27 @@ namespace NeuronalNetServer.Helpers
         {
             var builder = WebApplication.CreateBuilder();
 
+            builder.Services.AddCors(o => o.AddPolicy("CorePolicy", builder =>
+            {
+                builder.AllowAnyHeader();
+                builder.AllowAnyOrigin();
+                builder.AllowAnyMethod();
+            }));
+
             builder.Services.AddGrpc();
             builder.Services.AddScoped<DatabaseService>();
 
             var app = builder.Build();
 
-            app.MapGrpcService<UploadService>();
-            app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
+            app.UseCors("CorePolicy");
+
+            app.UseRouting();
+            app.UseGrpcWeb();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapGrpcService<UploadService>().EnableGrpcWeb();
+            });
 
             app.Run();
         }

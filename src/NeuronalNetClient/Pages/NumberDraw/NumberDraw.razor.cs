@@ -10,6 +10,8 @@ namespace NeuronalNetClient.Pages.NumberDraw
 {
     public partial class NumberDraw
     {
+        const int BinaryDataLength = 46 * 46;
+
         [Inject]
         private IJSRuntime JSRuntime { get; set; }
 
@@ -27,10 +29,25 @@ namespace NeuronalNetClient.Pages.NumberDraw
 
         #region Methods
 
-        private void UploadTrafficSign()
+        private async Task UploadTrafficSign()
         {
             var trafficSign = GenerateRandomTraffigSign();
-            GrpcUploader.SendTrafficSign(trafficSign);
+            await GrpcUploader.SendTrafficSignAsync(trafficSign);
+        }
+
+        private async Task UploadMultipleTrafficSigns()
+        {
+            var trafficSignList = new List<TrafficSign>();
+            trafficSignList.Add(GenerateRandomTraffigSign());
+
+            using (var streamingCall = GrpcUploader.SendMultipleTrafficSigns())
+            {
+                foreach (TrafficSign sign in trafficSignList)
+                {
+                    await streamingCall.RequestStream.WriteAsync(sign);
+                }
+                await streamingCall.RequestStream.CompleteAsync();
+            }
         }
 
         private void OnNumberButtonClicked(int number)
@@ -42,9 +59,9 @@ namespace NeuronalNetClient.Pages.NumberDraw
         {
             var random = new Random();
 
-            byte[] red = new byte[46 * 4];
-            byte[] green = new byte[46 * 4];
-            byte[] blue = new byte[46 * 4];
+            byte[] red = new byte[BinaryDataLength];
+            byte[] green = new byte[BinaryDataLength];
+            byte[] blue = new byte[BinaryDataLength];
 
             random.NextBytes(red);
             random.NextBytes(green);
