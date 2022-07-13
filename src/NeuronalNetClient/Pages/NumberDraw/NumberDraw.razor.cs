@@ -10,6 +10,8 @@ namespace NeuronalNetClient.Pages.NumberDraw
 {
     public partial class NumberDraw
     {
+        private static TrafficSign toBeUploadedSign = new TrafficSign();
+
         const int BinaryDataLength = 46 * 46;
 
         [Inject]
@@ -32,7 +34,7 @@ namespace NeuronalNetClient.Pages.NumberDraw
         private async Task UploadTrafficSign()
         {
             var trafficSign = GenerateRandomTraffigSign();
-            await GrpcUploader.SendTrafficSignAsync(trafficSign);
+            await GrpcUploader.SendTrafficSignAsync(toBeUploadedSign);
         }
 
         private async Task UploadMultipleTrafficSigns()
@@ -85,11 +87,27 @@ namespace NeuronalNetClient.Pages.NumberDraw
         public static void GetImageData(int[] data)
         {
             int number = data[1];
-            Console.WriteLine("Got Data");
-            for(int i=2;i<data[0]*data[0]+2;i++) 
+            List<byte> redData = new List<byte>();
+            List<byte> greenData = new List<byte>();
+            List<byte> blueData = new List<byte>();
+
+            Console.WriteLine("Got Data"+data[0]);
+            for(int i=0;i<data[0]*data[0];i++) 
             {
-                Console.WriteLine(data[i*3]+" "+data[i*3+1]+" "+data[i*3+2]);
+                redData.Add((byte)data[i*3+2]);
+                greenData.Add((byte)data[i*3+3]);
+                blueData.Add((byte)data[i*3+4]);
             }
+
+            TrafficSign sign = new TrafficSign()
+            {
+                SignType = (SignType)number,
+                Red = Google.Protobuf.ByteString.CopyFrom(redData.ToArray()),
+                Green = Google.Protobuf.ByteString.CopyFrom(greenData.ToArray()),
+                Blue = Google.Protobuf.ByteString.CopyFrom(blueData.ToArray())
+            };  
+
+            toBeUploadedSign = sign;
         }
 
         #endregion

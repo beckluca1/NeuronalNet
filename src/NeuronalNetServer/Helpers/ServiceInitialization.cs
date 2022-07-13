@@ -42,14 +42,13 @@ namespace NeuronalNetServer.Helpers
 
             int type = 0;
 
-            while(true)
+            for(int i=0;i<1000000;i++)
             {
-                type = type == 5 ? 0 : type+1;
+                type = type == 4 ? 0 : type+1;
                 
-                //calculator.Calculate(type);
+                calculator.Calculate(type);
 
-                Thread.Sleep(100);
-                Console.WriteLine("Calculate");
+                Thread.Sleep(1);
             }
         }
     }

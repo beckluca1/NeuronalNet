@@ -6,7 +6,7 @@ namespace NeuralNet
 
         public static float RandomFloat(float max, float min=0)
         {
-            return (float)(RANDOM.NextDouble()*(max-0.5*min)*2.0+min);
+            return (float)(RANDOM.NextDouble()*(max-min)+min);
         }
 
         public static float Pow(float value, float exponent) 
@@ -16,7 +16,7 @@ namespace NeuralNet
 
         public static float Sigmoid(float value)
         {
-            return (float)(Math.Exp(value)/(Math.Exp(value)+1));
+            return (float)(1/(Math.Exp(-value)+1));
         }
 
         public static float DSigmoid(float value)
@@ -44,14 +44,14 @@ namespace NeuralNet
 
         public NeuralNode(List<NeuralNode> inPreviousNodes) 
         {
-            bias = Global.RandomFloat(-5,5);
+            bias = Global.RandomFloat(5,-5);
 
             previousNodes = inPreviousNodes;
             previousNodeCount = inPreviousNodes.Count;
 
             foreach(NeuralNode node in previousNodes) 
             {
-                weights.Add(Global.RandomFloat(-1,1));
+                weights.Add(Global.RandomFloat(1,-1));
                 dWeights.Add(0);
             }
         }
@@ -63,21 +63,25 @@ namespace NeuralNet
             {
                 activation += previousNodes[i].value*weights[i];
             }
-            value = Global.Sigmoid(value);
+            value = Global.Sigmoid(activation);
         }
 
-        public void CalculateChanges(float realValue)
+        public float CalculateChanges(float realValue)
         {
-            dValue = Global.Pow(realValue-value,2);
+            dValue = 2*(value-realValue);
             CalculateChanges();
+            return Global.Pow(realValue-value,2);
         }
 
         public void Improve()
         {
-            bias += dBias;
+            bias -= dBias;
+            dBias = 0;
+            dValue = 0;
             for(int i=0;i<weights.Count;i++)
             {
-                weights[i] += dWeights[i]; 
+                weights[i] -= dWeights[i]; 
+                dWeights[i] = 0;
             }
         }
 
@@ -141,12 +145,14 @@ namespace NeuralNet
             }            
         }
 
-        public void CalculateChanges(List<float> realValues)
+        public float CalculateChanges(List<float> realValues)
         {
+            float difference = 0;
             for(int i=0;i<nodes.Count;i++) 
             {
-                nodes[i].CalculateChanges(realValues[i]);
+                difference += nodes[i].CalculateChanges(realValues[i]);
             }
+            return difference;
         }
 
         public void CalculateChanges()
@@ -215,20 +221,20 @@ namespace NeuralNet
         }
 
         public void Update()
-        {
-            foreach(NeuralLayer layer in layers) 
+        {   for(int i=1;i<layerCount;i++)
             {
-                layer.Update();
+                layers[i].Update();
             }      
         }
 
-        public void CalculateChanges(List<float> realValues)
+        public float CalculateChanges(List<float> realValues)
         {
-            layers[layers.Count-1].CalculateChanges(realValues);
+            float difference = layers[layers.Count-1].CalculateChanges(realValues);
             for(int i=layers.Count-2;i>=0;i--) 
             {
                 layers[i].CalculateChanges();
             }
+            return difference;
         }
 
         public void Improve()
@@ -246,7 +252,7 @@ namespace NeuralNet
 
         public List<float> GetOutput()
         {
-            return layers[layerCount].GetValues();
+            return layers[layerCount-1].GetValues();
         }
 
         public List<float> GetDValues()

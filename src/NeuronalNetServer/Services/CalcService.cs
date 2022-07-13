@@ -30,31 +30,33 @@ namespace NeuronalNetServer.Services
 
         #region Methods
 
-        public TrafficSign LoadImage(int number)
+        public TrafficSign? LoadImage(int number)
         {
-            int maxIndex = 12;
-            int randomIndex = new Random().Next() % maxIndex;
+            SignType type = (SignType)number;
 
-            TrafficSign sign = new TrafficSign();
+            List<TrafficSign> signs = _dbService.GetTrafficSignType(type);
+            if(signs.Count==0)
+                return null;
+            int randomIndex = new Random().Next() % signs.Count;
 
-            //Load image
-
-            return sign;
+            return signs[randomIndex];
         }
 
-        public void Calculate(int number, List<float> dataRed, List<float> dataGreen, List<float> dataBlue)
+        public void Calculate(int number)
         {
-            TrafficSign loadedSign = LoadImage(number);
-
-            //Convert sign to image data
+            TrafficSign? loadedSign = LoadImage(number);
+            if(loadedSign==null)
+                return;
 
             List<float> trainingValues = new List<float>();
-            for (int i = 0; i <= 10; i++)
+            for (int i = 0; i < 5; i++)
             {
                 trainingValues.Add(i == number ? 1 : 0);
+                Console.Write((int)(_net.getOutput()[i]*100)+", ");
             }
-            _net.Update(dataRed, dataGreen, dataBlue);
-            _net.CalculateChanges(trainingValues);
+            _net.Update(loadedSign.Red.ToByteArray(), loadedSign.Green.ToByteArray(), loadedSign.Blue.ToByteArray());
+            float difference =_net.CalculateChanges(trainingValues);
+            Console.WriteLine(": "+difference);
             _net.Improve();
         }
 

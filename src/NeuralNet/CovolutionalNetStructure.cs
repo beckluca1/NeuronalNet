@@ -60,8 +60,8 @@ namespace NeuralNet
             poolingKernel = inPoolingKernel;
             previousMaps = inPreviousMaps;
             mapDifference =  (neuralKernels[0].GetKernelSize()-1)/2;
-            mapSize = previousMaps[0].mapSize - 2*mapDifference;
-            poolingSize = inPoolingKernel.GetKernelSize();
+            mapSize = previousMaps[0].poolingMapSize - 2*mapDifference;
+            poolingSize = poolingKernel.GetKernelSize();
             poolingMapSize = mapSize/poolingSize;
 
             for(int x=0;x<mapSize;x++)
@@ -96,22 +96,24 @@ namespace NeuralNet
         public void Update() 
         {
             int mD = mapDifference;
-            for(int x=mD;x<mapSize+mD;x++)
+                                
+            for(int x=0;x<mapSize;x++)
             {
-                for(int y=mD;y<mapSize+mD;y++)
+                for(int y=0;y<mapSize;y++)
                 {
-                    activations[x-mD][y-mD] = 0;
+                    activations[x][y] = 0;
                     for(int i=0;i<previousMaps.Count;i++)
                     {
-                        for(int dX=-mD;dX<mD;dX++)
+                        for(int dX=-mD;dX<=mD;dX++)
                         {
-                            for(int dY=-mD;dY<mD;dY++)
+                            for(int dY=-mD;dY<=mD;dY++)
                             {
-                                activations[x-mD][y-mD] += previousMaps[i].poolingValues[x+dX][y+dY]*neuralKernels[i].getWeights()[dX][dY];
+                                activations[x][y] += previousMaps[i].poolingValues[mD+x+dX][mD+y+dY]*neuralKernels[i].getWeights()[mD+dX][mD+dY];
                             }
                         }
+
                     }
-                    values[x-mD][y-mD] = Global.Sigmoid(activations[x-mD][y-mD]);
+                    values[x][y] = Global.Sigmoid(activations[x][y]);
                 }
             }
 
@@ -133,13 +135,31 @@ namespace NeuralNet
 
         }
 
-        public void SetValues(List<float> inValues)
+        public void SetValues(byte[] inValues)
         {
             for(int x=0;x<mapSize;x++)
             {
                 for(int y=0;y<mapSize;y++)
                 {
-                    dValues[x][y] = inValues[y*mapSize+x];
+                    poolingValues[x][y] = ((float)inValues[y*mapSize+x])/255.0f;
+                }
+            }
+        }
+
+        public void resetDValues() 
+        {
+            for(int x=0;x<mapSize;x++)
+            {
+                for(int y=0;y<mapSize;y++)
+                {
+                    dValues[x][y] = 0;
+                }
+            }
+            for(int x=0;x<poolingMapSize;x++)
+            {
+                for(int y=0;y<poolingMapSize;y++)
+                {
+                    dPoolingValues[x][y] = 0;
                 }
             }
         }
@@ -157,41 +177,40 @@ namespace NeuralNet
 
         public void CalculateChanges()
         {
-            int mD = mapDifference;
-            for(int x=mD;x<mapSize+mD;x++)
-            {
-                for(int y=mD;y<mapSize+mD;y++)
-                {
-                    activations[x-mD][y-mD] = 0;
-                    for(int i=0;i<previousMaps.Count;i++)
-                    {
-                        for(int dX=-mD;dX<mD;dX++)
-                        {
-                            for(int dY=-mD;dY<mD;dY++)
-                            {
-                                neuralKernels[i].AddDWeight(dX,dY,previousMaps[i].poolingValues[x+dX][y+dY]*Global.DSigmoid(activations[x-mD][y-mD])*dValues[x-mD][y-mD]/(previousMaps.Count*previousMaps[0].mapSize*previousMaps[0].mapSize));
-                                previousMaps[i].dPoolingValues[x+dX][y+dY] += neuralKernels[i].getWeights()[dX][dY]*Global.DSigmoid(activations[x-mD][y-mD])*dValues[x-mD][y-mD]/(previousMaps.Count*previousMaps[0].mapSize*previousMaps[0].mapSize);
-                            }
-                        }
-                    }
-                }
-            }
-
             for(int x=0;x<poolingMapSize;x++)
             {
                 for(int y=0;y<poolingMapSize;y++)
                 {
-                    poolingActivations[x][y] = 0;
                     for(int dX=0;dX<poolingSize;dX++)
                     {
                         for(int dY=0;dY<poolingSize;dY++)
                         {
                             poolingKernel.AddDWeight(dX,dY,values[x*poolingSize+dX][y*poolingSize+dY]*Global.DSigmoid(poolingActivations[x][y])*dPoolingValues[x][y]/(mapSize*mapSize));
-                            dValues[x*poolingSize+dX][y*poolingSize+dY] += poolingKernel.getWeights()[dX][dY]*Global.DSigmoid(poolingActivations[x][y])*dPoolingValues[x][y]/(mapSize*mapSize);                        }
+                            dValues[x*poolingSize+dX][y*poolingSize+dY] += poolingKernel.getWeights()[dX][dY]*Global.DSigmoid(poolingActivations[x][y])*dPoolingValues[x][y]/(mapSize*mapSize);                        
                         }
                     }
                 }
             }
+
+            int mD = mapDifference;
+            for(int x=mD;x<mapSize+mD;x++)
+            {
+                for(int y=mD;y<mapSize+mD;y++)
+                {
+                    for(int i=0;i<previousMaps.Count;i++)
+                    {
+                        for(int dX=-mD;dX<=mD;dX++)
+                        {
+                            for(int dY=-mD;dY<=mD;dY++)
+                            {
+                                neuralKernels[i].AddDWeight(mD+dX,mD+dY,previousMaps[i].poolingValues[x+dX][y+dY]*Global.DSigmoid(activations[x-mD][y-mD])*dValues[x-mD][y-mD]/(previousMaps.Count*previousMaps[0].mapSize*previousMaps[0].mapSize));
+                                previousMaps[i].dPoolingValues[x+dX][y+dY] += neuralKernels[i].getWeights()[mD+dX][mD+dY]*Global.DSigmoid(activations[x-mD][y-mD])*dValues[x-mD][y-mD]/(previousMaps.Count*previousMaps[0].mapSize*previousMaps[0].mapSize);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public class NeuralKernel
@@ -211,7 +230,7 @@ namespace NeuralNet
                 dWeights.Add(new List<float>());
                 for(int y=0;y<kernelSize;y++)
                 {
-                    weights[x].Add(Global.RandomFloat(-1,1));
+                    weights[x].Add(Global.RandomFloat(1,-1));
                     dWeights[x].Add(0);
                 }
             }
@@ -223,7 +242,8 @@ namespace NeuralNet
             {
                 for(int y=0;y<kernelSize;y++)
                 {
-                    weights[x][y] += dWeights[x][y];
+                    weights[x][y] -= dWeights[x][y];
+                    dWeights[x][y] = 0;
                 }
             }
         }
@@ -274,18 +294,13 @@ namespace NeuralNet
 
 
             neuralMaps.Add(new List<NeuralMap>());
-            neuralMaps[0].Add(new NeuralMap(inputSize));
-            neuralMaps[0].Add(new NeuralMap(inputSize));
-            neuralMaps[0].Add(new NeuralMap(inputSize));
-
             neuralKernels.Add(new List<NeuralKernel>());
-            neuralKernels[0].Add(new NeuralKernel(convolutionalSize[0]));
-            neuralKernels[0].Add(new NeuralKernel(convolutionalSize[0]));
-            neuralKernels[0].Add(new NeuralKernel(convolutionalSize[0]));
+            poolingKernels.Add(new NeuralKernel(0));
 
-            poolingKernels.Add(new NeuralKernel(poolingSize[0]));
-            poolingKernels.Add(new NeuralKernel(poolingSize[0]));
-            poolingKernels.Add(new NeuralKernel(poolingSize[0]));
+            for(int l=0;l<layerSize[0];l++)
+            {
+                neuralMaps[0].Add(new NeuralMap(inputSize));
+            }
 
             for(int i=1;i<layerCount;i++)
             {
@@ -293,14 +308,25 @@ namespace NeuralNet
                 neuralKernels.Add(new List<NeuralKernel>());
                 for(int l=0;l<layerSize[i];l++)
                 {
-                    neuralMaps[i].Add(new NeuralMap(neuralKernels[i-1],poolingKernels[i-1],neuralMaps[i-1]));
                     neuralKernels[i].Add(new NeuralKernel(convolutionalSize[i]));
                 }
-                poolingKernels.Add(new NeuralKernel(poolingSize[i]));
+                for(int l=0;l<layerSize[i];l++)
+                {
+                    NeuralKernel poolingKernel = new NeuralKernel(poolingSize[i]);
+                    poolingKernels.Add(poolingKernel);
+                    List<NeuralKernel> neuralKernelList = new List<NeuralKernel>();
+                    for(int p=0;p<layerSize[i-1];p++)
+                    {
+                        NeuralKernel neuralKernel = new NeuralKernel(convolutionalSize[i]);
+                        neuralKernels[i].Add(neuralKernel);
+                        neuralKernelList.Add(neuralKernel);
+                    }
+                    neuralMaps[i].Add(new NeuralMap(neuralKernelList,poolingKernel,neuralMaps[i-1]));
+                }
             }
         }
 
-        public void SetInput(List<float> inputR, List<float> inputG, List<float> inputB)
+        public void SetInput(byte[] inputR, byte[] inputG, byte[] inputB)
         {
             neuralMaps[0][0].SetValues(inputR);
             neuralMaps[0][1].SetValues(inputG);
@@ -319,7 +345,7 @@ namespace NeuralNet
 
         public void Update()
         {
-            for(int i=0;i<layerCount;i++)
+            for(int i=1;i<layerCount;i++)
             {
                 for(int l=0;l<layerSize[i];l++)
                 {
@@ -336,7 +362,7 @@ namespace NeuralNet
                 neuralMaps[layerCount-1][i].CalculateChanges(dValues[i]);
             }
             
-            for(int i=layerCount-2;i>=0;i--)
+            for(int i=layerCount-2;i>=1;i--)
             {
                 for(int l=0;l<layerSize[i];l++)
                 {
@@ -354,6 +380,21 @@ namespace NeuralNet
                     kernel.Improve();
                 }
             }
+
+            foreach(NeuralKernel kernel in poolingKernels)
+            {
+                kernel.Improve();
+            }
+
+            foreach(List<NeuralMap> maps in neuralMaps)
+            {
+                foreach(NeuralMap map in maps)
+                {   
+                    map.resetDValues();
+                }
+            }
+
+
         }
     }
 }
