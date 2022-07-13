@@ -13,7 +13,7 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - /var/lib/mysql:/var/lib/mysql
+      - /var/lib/mysql/neuronal_net:/var/lib/mysql
       - ./NeuronalNetServer/Migrations:/docker-entrypoint-initdb.d
 
   neuronalnetserver:
