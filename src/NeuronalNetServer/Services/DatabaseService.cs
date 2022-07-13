@@ -38,6 +38,8 @@ namespace NeuronalNetServer.Services
 
             var floatBitmapList = BuildTrafficSignList(data);
 
+            command.Dispose();
+
             return floatBitmapList;
         }
 
@@ -52,6 +54,8 @@ namespace NeuronalNetServer.Services
             var data = command.ExecuteReader();
 
             var floatBitmapList = BuildTrafficSignList(data);
+
+            command.Dispose();
 
             return floatBitmapList;
         }
@@ -73,6 +77,8 @@ namespace NeuronalNetServer.Services
             command.Prepare();
 
             command.ExecuteNonQuery();
+
+            command.Dispose();
         }
 
         #endregion
