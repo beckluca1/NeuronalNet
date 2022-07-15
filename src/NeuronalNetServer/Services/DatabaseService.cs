@@ -81,6 +81,18 @@ namespace NeuronalNetServer.Services
             command.Dispose();
         }
 
+        public NumberOfSigns GetNumberOfSigns()
+        {
+            string sqlSelect = "select sign_type, count(*) number group by sign_type";
+
+            MySqlCommand command = new MySqlCommand(sqlSelect, _connection);
+            var dataReader = command.ExecuteReader();
+
+            var numberOfSigns = ExtractSignNumberReader(dataReader);
+
+            return numberOfSigns; 
+        }
+
         #endregion
 
         #region Private Methods
@@ -134,6 +146,70 @@ namespace NeuronalNetServer.Services
 
             return enumSignType;
         }
+
+        private NumberOfSigns ExtractSignNumberReader(MySqlDataReader reader)
+        {
+            var signNumbers = new Dictionary<string, int>();
+
+            using (reader)
+            {
+                if (!reader.HasRows)
+                {
+                    var emptyNumberOfSigns = new NumberOfSigns()
+                    {
+                        Stop = 0,
+                        ThirtySpeedLimit = 0,
+                        FiftySpeedLimit = 0,
+                        PriorityRoad = 0,
+                        GiveWay = 0,
+                        Unclassified = 0
+                    };
+
+                    return emptyNumberOfSigns;
+                }
+                
+                while (reader.Read())
+                {
+                    signNumbers.Add(reader.GetString("sign_type"), reader.GetInt32("number"));
+                }
+            }
+
+            return BuildNumberOfSigns(signNumbers);
+        }
+
+        private NumberOfSigns BuildNumberOfSigns(Dictionary<string, int> numberOfSignsDict)
+         {
+             int stop = 0;
+            numberOfSignsDict.TryGetValue(SignType.Stop.ToString(), out stop);
+
+            int thirtySpeedLimit = 0;
+            numberOfSignsDict.TryGetValue(SignType.Stop.ToString(), out thirtySpeedLimit);
+
+            int fiftySpeedLimit = 0;
+            numberOfSignsDict.TryGetValue(SignType.Stop.ToString(), out fiftySpeedLimit);
+
+            int priorityRoad = 0;
+            numberOfSignsDict.TryGetValue(SignType.Stop.ToString(), out priorityRoad);
+
+            int giveWay = 0;
+            numberOfSignsDict.TryGetValue(SignType.Stop.ToString(), out giveWay);
+
+            int unclassified = 0;
+            numberOfSignsDict.TryGetValue(SignType.Stop.ToString(), out unclassified);
+
+            var numberOfSigns = new NumberOfSigns()
+            {
+                Stop = stop,
+                ThirtySpeedLimit = thirtySpeedLimit,
+                FiftySpeedLimit = fiftySpeedLimit,
+                PriorityRoad = priorityRoad,
+                GiveWay = giveWay,
+                Unclassified = unclassified
+            };
+
+            return numberOfSigns;
+
+         }
 
         #endregion
 
