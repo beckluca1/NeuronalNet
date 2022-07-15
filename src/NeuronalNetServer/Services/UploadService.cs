@@ -66,7 +66,13 @@ namespace NeuronalNetServer.Services
             {
                 Success = true
             };
+        }
 
+        public override Task<NumberOfSigns> GetSignTypeData(Null request, ServerCallContext context)
+        {
+            var numberOfSigns = _dbService.GetNumberOfSigns();
+
+            return Task.FromResult(numberOfSigns);
         }
 
         private void InitiliazeServices()
