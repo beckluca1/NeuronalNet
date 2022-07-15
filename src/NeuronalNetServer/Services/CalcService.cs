@@ -49,14 +49,19 @@ namespace NeuronalNetServer.Services
                 return;
 
             List<float> trainingValues = new List<float>();
+
+            _net.Update(loadedSign.Red.ToByteArray(), loadedSign.Green.ToByteArray(), loadedSign.Blue.ToByteArray());
             for (int i = 0; i < 5; i++)
             {
                 trainingValues.Add(i == number ? 1 : 0);
-                Console.Write((int)(_net.getOutput()[i]*100)+", ");
+                //Console.Write((int)(_net.getOutput()[i]*100000)+", ");
             }
-            _net.Update(loadedSign.Red.ToByteArray(), loadedSign.Green.ToByteArray(), loadedSign.Blue.ToByteArray());
             float difference =_net.CalculateChanges(trainingValues);
-            Console.WriteLine(": "+difference);
+            Console.WriteLine(difference + (_net.Correct(number) ? " Correct " : " Incorrect ") + ((SignType)number).ToString());
+        }
+
+        public void Improve()
+        {
             _net.Improve();
         }
 

@@ -14,6 +14,19 @@ namespace NeuralNet
             return (float)(Math.Pow((double)value,(double)exponent));
         }
 
+        public static float ReLu(float value)
+        {
+            float squash = Sigmoid(value);
+            return squash;
+        }
+
+        public static float DReLu(float value)
+        {
+            float dSquash = DSigmoid(value);
+
+            return dSquash;
+        }
+
         public static float Sigmoid(float value)
         {
             return (float)(1/(Math.Exp(-value)+1));
@@ -75,12 +88,12 @@ namespace NeuralNet
 
         public void Improve()
         {
-            bias -= dBias;
+            bias -= 0.01f*dBias;
             dBias = 0;
             dValue = 0;
             for(int i=0;i<weights.Count;i++)
             {
-                weights[i] -= dWeights[i]; 
+                weights[i] -= 0.01f*dWeights[i]; 
                 dWeights[i] = 0;
             }
         }
