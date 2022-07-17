@@ -15,7 +15,7 @@ namespace NeuronalNetClient.Pages.NumberDraw
         const int BinaryDataLength = 46 * 46;
 
         [Inject]
-        private IJSRuntime JSRuntime { get; set; }
+        private IJSRuntime JSRuntime { get; set; } = default!;
 
         [Inject]
         private Uploader.UploaderClient GrpcUploader { get; set; } = default!;
