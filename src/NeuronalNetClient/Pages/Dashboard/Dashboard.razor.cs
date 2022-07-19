@@ -11,18 +11,29 @@ namespace NeuronalNetClient.Pages.Dashboard
     public partial class Dashboard
     {
         [Inject]
-        private IJSRuntime JSRuntime { get; set; } = default!;
-
-        [Inject]
         private Uploader.UploaderClient GrpcUploader { get; set; } = default!;
 
-        private NumberOfSigns CurrentData { get; set; } = default!;
+        private NumberOfSigns _currentData = default!;
+        private NumberOfSigns CurrentData
+        {
+            get
+            {
+                return _currentData;
+            }
+            set
+            {
+                Total = CalculateTotal();
+                _currentData = value;
+            }
+        }
+
+        private int Total { get; set; }
 
         #region Overrides
 
-        protected override async void OnInitialized()
+        protected override void OnInitialized()
         {
-            await GetNumberOfSigns();
+            base.OnInitialized();
         }
 
         #endregion
@@ -32,6 +43,21 @@ namespace NeuronalNetClient.Pages.Dashboard
         private async Task GetNumberOfSigns()
         {
             CurrentData = await GrpcUploader.GetSignTypeDataAsync(new Null());
+        }
+
+        private int CalculateTotal()
+        {
+            if (CurrentData == null)
+                return 0;
+
+            int total = CurrentData.Stop
+                        + CurrentData.GiveWay
+                        + CurrentData.PriorityRoad
+                        + CurrentData.ThirtySpeedLimit
+                        + CurrentData.FiftySpeedLimit
+                        + CurrentData.Unclassified;
+
+            return total;
         }
 
         #endregion

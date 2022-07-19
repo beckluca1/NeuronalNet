@@ -6,25 +6,31 @@
 
 <h1>Dashboard</h1>
 
-<p>Stop: @CurrentData.Stop</p>
+<button class="btn btn-primary" 
+        @onclick='@GetNumberOfSigns'>
+        Refresh
+</button>
 <br/>
 
-<p>Give Way: @CurrentData.GiveWay</p>
+<p>Stop: @CurrentData?.Stop</p>
 <br/>
 
-<p>Priority Road: @CurrentData.PriorityRoad</p>
+<p>Give Way: @CurrentData?.GiveWay</p>
 <br/>
 
-<p>Thirty Speed Limit: @CurrentData.ThirtySpeedLimit</p>
+<p>Priority Road: @CurrentData?.PriorityRoad</p>
 <br/>
 
-<p>Fifty Speed Limit: @CurrentData.FiftySpeedLimit</p>
+<p>Thirty Speed Limit: @CurrentData?.ThirtySpeedLimit</p>
 <br/>
 
-<p>Unclassified: @CurrentData.Unclassified</p>
+<p>Fifty Speed Limit: @CurrentData?.FiftySpeedLimit</p>
 <br/>
 
-<p>Total: </p>
+<p>Unclassified: @CurrentData?.Unclassified</p>
+<br/>
+
+<p>Total: @Total</p>
 <br/>
 
 </body>
