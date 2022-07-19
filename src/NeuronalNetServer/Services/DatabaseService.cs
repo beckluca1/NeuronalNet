@@ -83,7 +83,8 @@ namespace NeuronalNetServer.Services
 
         public NumberOfSigns GetNumberOfSigns()
         {
-            string sqlSelect = "select sign_type, count(*) number group by sign_type";
+            string sqlSelect = @"select sign_type, count(*) number
+                                 from traffic_sign number group by sign_type";
 
             MySqlCommand command = new MySqlCommand(sqlSelect, _connection);
             var dataReader = command.ExecuteReader();
@@ -183,19 +184,19 @@ namespace NeuronalNetServer.Services
             numberOfSignsDict.TryGetValue(SignType.Stop.ToString(), out stop);
 
             int thirtySpeedLimit = 0;
-            numberOfSignsDict.TryGetValue(SignType.Stop.ToString(), out thirtySpeedLimit);
+            numberOfSignsDict.TryGetValue(SignType.GiveWay.ToString(), out thirtySpeedLimit);
 
             int fiftySpeedLimit = 0;
-            numberOfSignsDict.TryGetValue(SignType.Stop.ToString(), out fiftySpeedLimit);
+            numberOfSignsDict.TryGetValue(SignType.PriorityRoad.ToString(), out fiftySpeedLimit);
 
             int priorityRoad = 0;
-            numberOfSignsDict.TryGetValue(SignType.Stop.ToString(), out priorityRoad);
+            numberOfSignsDict.TryGetValue(SignType.ThirtySpeedLimit.ToString(), out priorityRoad);
 
             int giveWay = 0;
-            numberOfSignsDict.TryGetValue(SignType.Stop.ToString(), out giveWay);
+            numberOfSignsDict.TryGetValue(SignType.FiftySpeedLimit.ToString(), out giveWay);
 
             int unclassified = 0;
-            numberOfSignsDict.TryGetValue(SignType.Stop.ToString(), out unclassified);
+            numberOfSignsDict.TryGetValue(SignType.Unclassified.ToString(), out unclassified);
 
             var numberOfSigns = new NumberOfSigns()
             {
