@@ -12,6 +12,9 @@ namespace NeuronalNetServer.Services
         private ComplexNeuralNet _net;
         private readonly DatabaseService _dbService;
 
+        public float cost = 0;
+        public int correct = 0;
+
         #endregion
 
         #region Constructor
@@ -54,15 +57,16 @@ namespace NeuronalNetServer.Services
             for (int i = 0; i < 5; i++)
             {
                 trainingValues.Add(i == number ? 1 : 0);
-                //Console.Write((int)(_net.getOutput()[i]*100000)+", ");
             }
-            float difference =_net.CalculateChanges(trainingValues);
-            Console.WriteLine(difference + (_net.Correct(number) ? " Correct " : " Incorrect ") + ((SignType)number).ToString());
+            _net.CalculateChanges(trainingValues, number);
         }
 
         public void Improve()
         {
             _net.Improve();
+            cost = _net.cost;
+            correct = _net.correct;
+            Console.WriteLine(cost/10.0f + "; "+(((float)correct)/10.0f*100)+"%");
         }
 
         private void BuildConfiguration()

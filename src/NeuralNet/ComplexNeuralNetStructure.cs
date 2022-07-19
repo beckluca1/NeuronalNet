@@ -2,17 +2,15 @@ namespace NeuralNet
 {
     public class ComplexNeuralNet
     {
-        int avgPointer = 0;
-        int avgStartPointer = 0;
-        List<float> avgList = new List<float>();
+
+        public float cost = 0;
+        public int correct = 0;
 
         ConvolutionalNet frontNet;
 
         public ComplexNeuralNet()
         {
             frontNet = new ConvolutionalNet();
-            for(int i=0;i<100;i++)
-                avgList.Add(0);
         }
 
         public void Update(byte[] inputR, byte[] inputG, byte[] inputB)
@@ -26,22 +24,20 @@ namespace NeuralNet
             return frontNet.Correct(number);
         }
 
-        public float CalculateChanges(List<float> realValues)
+        public void CalculateChanges(List<float> realValues, int number)
         {
-            float difference = frontNet.CalculateCost(realValues);
+            frontNet.CalculateCost(realValues);
+            frontNet.Correct(number);
             frontNet.CalculateChanges();
-            avgPointer = (avgPointer+1)%100;
-            avgStartPointer = avgStartPointer==100 ? 100 : avgStartPointer+1;
-            avgList[avgPointer] = difference;
-            float sum = 0;
-            for(int i=0;i<avgStartPointer;i++)
-                sum += avgList[i];
-            return sum/avgStartPointer;
         }
 
         public void Improve()
         {
             frontNet.Improve();
+            cost = frontNet.cost;
+            frontNet.cost = 0;
+            correct = frontNet.correct;
+            frontNet.correct = 0;
         }
 
         public List<float> getOutput()
