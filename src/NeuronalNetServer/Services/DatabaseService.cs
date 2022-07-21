@@ -1,6 +1,6 @@
-using NeuronalNetServer.Helpers;
 using MySql.Data.MySqlClient;
 using NeuronalNetServer.Proto;
+using NeuralNet;
 
 namespace NeuronalNetServer.Services
 {
@@ -25,6 +25,44 @@ namespace NeuronalNetServer.Services
         public void Initialize(string connectionString)
         {
             OpenConnection(connectionString);
+        }
+
+        public void GetNeuralNet(int identifier)
+        {
+            string sqlSelect = "select * from neural_net where id = @IDENTIFIER";
+
+            MySqlParameter[] parameters = {
+                new MySqlParameter("@IDENTIFIER", identifier),
+            };   
+
+            MySqlCommand command = new MySqlCommand(sqlSelect, _connection);    
+            command.Parameters.AddRange(parameters);
+            command.Prepare();
+
+            var data = command.ExecuteReader();
+
+            FillNetSaveStateHandler(data);
+
+            command.Dispose();
+        }
+
+        public void InsertNeuralNet(ConvolutionalNet neuralNet, int rating)
+        {
+            string sqlInsert = @"insert into neural_net (net_data, rating, uploaded)
+                                 values (@NET_DATA, @RATING, now())";
+
+            MySqlParameter[] parameters = {
+                new MySqlParameter("@NET_DATA", neuralNet),
+                new MySqlParameter("@RATING", rating)
+            };    
+
+            MySqlCommand command = new MySqlCommand(sqlInsert, _connection);
+            command.Parameters.AddRange(parameters);
+            command.Prepare();
+
+            command.ExecuteNonQuery();
+
+            command.Dispose();
         }
 
         public List<TrafficSign> GetAllTrafficSigns(int limit = 0)
@@ -102,6 +140,25 @@ namespace NeuronalNetServer.Services
         {
             _connection = new MySqlConnection(connectionString);
             _connection.Open();
+        }
+
+        private void FillNetSaveStateHandler(MySqlDataReader reader)
+        {
+            using (reader)
+            {
+                if (!reader.HasRows)
+                    return;
+
+                while (reader.Read())
+                {
+                    uint size = reader.GetUInt32(reader.GetOrdinal("net_data"));
+                    byte[] netData = new byte[size];
+
+                    reader.GetBytes(reader.GetOrdinal("net_data"), 0, netData, 0, (int)size);
+
+                    NetSaveStateHandler.DataList = Global.byteToFloat(netData).ToList<float>();
+                }
+            }
         }
 
         private List<TrafficSign> BuildTrafficSignList(MySqlDataReader reader)
