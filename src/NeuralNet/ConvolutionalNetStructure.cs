@@ -1,6 +1,6 @@
 namespace NeuralNet
 {
-public static class Global
+    public static class Global
     {
         public static Random RANDOM = new Random();
 
@@ -14,19 +14,6 @@ public static class Global
             return (float)(Math.Pow((double)value,(double)exponent));
         }
 
-        public static float ReLu(float value)
-        {
-            float squash = Sigmoid(value);
-            return squash;
-        }
-
-        public static float DReLu(float value)
-        {
-            float dSquash = DSigmoid(value);
-
-            return dSquash;
-        }
-
         public static float Sigmoid(float value)
         {
             return (float)(1/(Math.Exp(-value)+1));
@@ -35,6 +22,22 @@ public static class Global
         public static float DSigmoid(float value)
         {
             return Sigmoid(value)*(1-Sigmoid(value));
+        }
+
+        public static byte[] floatToByte(float[] data)
+        {
+            byte[] byteArray = new byte[data.Length * 4];
+            Buffer.BlockCopy(data, 0, byteArray, 0, byteArray.Length);
+
+            return byteArray;
+        }
+
+        public static float[] byteToFloat(byte[] data)
+        {
+            float[] floatArray = new float[data.Length / 4];
+            Buffer.BlockCopy(data, 0, floatArray, 0, data.Length);
+
+            return floatArray;
         }
     }
 
@@ -154,7 +157,7 @@ public static class Global
                 }  
             }
 
-            for(int i=0;i<mapArea;i++) values[i] = Global.ReLu(activations[i]);
+            for(int i=0;i<mapArea;i++) values[i] = Global.Sigmoid(activations[i]);
             for(int i=0;i<mapArea;i++) dValues[i] = 0;
             for(int i=0;i<mapArea;i++) dValuesCount[i] = 0;         
         }
@@ -177,7 +180,7 @@ public static class Global
                                 kernel.dWeights[dX+filterSize*dY] += previousMap.values[(x+dX)+previousMapSize*(y+dY)]*dValues[x+mapSize*y];
                                 kernel.dWeightsCount[dX+filterSize*dY]++;
                                 if(previousMap.type!=NeuronType.Pooling)
-                                    previousMap.dValues[(x+dX)+previousMapSize*(y+dY)] += kernel.weights[dX+filterSize*dY]*Global.DReLu(previousMap.activations[(x+dX)+previousMapSize*(y+dY)])*dValues[x+mapSize*y];
+                                    previousMap.dValues[(x+dX)+previousMapSize*(y+dY)] += kernel.weights[dX+filterSize*dY]*Global.DSigmoid(previousMap.activations[(x+dX)+previousMapSize*(y+dY)])*dValues[x+mapSize*y];
                                 else
                                     previousMap.dValues[(x+dX)+previousMapSize*(y+dY)] += kernel.weights[dX+filterSize*dY]*dValues[x+mapSize*y];
                                 previousMap.dValuesCount[(x+dX)+previousMapSize*(y+dY)]++;
@@ -281,7 +284,7 @@ public static class Global
                                 maximum = value > maximum ? value : maximum;
                             }
                         }
-                        previousMap.dValues[maximumIndex] += dValues[x+mapSize*y]*Global.DReLu(previousMap.activations[maximumIndex]);
+                        previousMap.dValues[maximumIndex] += dValues[x+mapSize*y]*Global.DSigmoid(previousMap.activations[maximumIndex]);
                         previousMap.dValuesCount[maximumIndex]++;
                     }
                 }
@@ -362,7 +365,7 @@ public static class Global
                     }
                 }
             }
-            for(int i=0;i<mapArea;i++) values[i] = Global.ReLu(activations[i]);
+            for(int i=0;i<mapArea;i++) values[i] = Global.Sigmoid(activations[i]);
             for(int i=0;i<mapArea;i++) dValues[i] = 0;
             for(int i=0;i<mapArea;i++) dValuesCount[i] = 0;
         }
@@ -382,7 +385,7 @@ public static class Global
                         dWeights[i+previousMaps.Count*j+previousMaps.Count*mapArea*k] += previousMap.values[k]*dValues[j];
                         dWeightsCount[i+previousMaps.Count*j+previousMaps.Count*mapArea*k]++;
                         if(previousMap.type!=NeuronType.Pooling)
-                            previousMap.dValues[k] += weights[i+previousMaps.Count*j+previousMaps.Count*mapArea*k]*Global.DReLu(previousMap.activations[k])*dValues[j];
+                            previousMap.dValues[k] += weights[i+previousMaps.Count*j+previousMaps.Count*mapArea*k]*Global.DSigmoid(previousMap.activations[k])*dValues[j];
                         else
                             previousMap.dValues[k] += weights[i+previousMaps.Count*j+previousMaps.Count*mapArea*k]*dValues[j];
                         previousMap.dValuesCount[k]++;            
@@ -499,11 +502,11 @@ public static class Global
                 {
                     if(type==NeuronType.Input)
                         neuralMaps[i].Add(new InputMap(mapSizes[i]));
-                   if(type==NeuronType.Convolutional)
+                    else if(type==NeuronType.Convolutional)
                         neuralMaps[i].Add(new ConvolutionalMap(filterSizes[i],neuralMaps[i-1]));
-                   if(type==NeuronType.Pooling)
+                    else if(type==NeuronType.Pooling)
                         neuralMaps[i].Add(new PoolingMap(filterSizes[i],neuralMaps[i-1][j]));
-                   if(type==NeuronType.Connected)
+                    else if(type==NeuronType.Connected)
                         neuralMaps[i].Add(new ConnectedMap(mapSizes[i],neuralMaps[i-1]));
                 }
 
@@ -520,11 +523,11 @@ public static class Global
                 {
                     if(type==NeuronType.Input)
                         neuralMaps[i].Add(new InputMap(mapSizes[i]));
-                   if(type==NeuronType.Convolutional)
+                    else if(type==NeuronType.Convolutional)
                         neuralMaps[i].Add(new ConvolutionalMap(filterSizes[i],neuralMaps[i-1]));
-                   if(type==NeuronType.Pooling)
+                    else if(type==NeuronType.Pooling)
                         neuralMaps[i].Add(new PoolingMap(filterSizes[i],neuralMaps[i-1][j]));
-                   if(type==NeuronType.Connected)
+                    else if(type==NeuronType.Connected)
                         neuralMaps[i].Add(new ConnectedMap(mapSizes[i],neuralMaps[i-1]));
                 }
 
@@ -562,7 +565,7 @@ public static class Global
             List<float> values = GetOutput();
             for(int i=0;i<values.Count;i++)
             {
-                neuralMaps[8][0].dValues[i] = 2*(neuralMaps[8][0].values[i]-realValues[i])*Global.DReLu(neuralMaps[8][0].activations[i]);
+                neuralMaps[8][0].dValues[i] = 2*(neuralMaps[8][0].values[i]-realValues[i])*Global.DSigmoid(neuralMaps[8][0].activations[i]);
                 cost += Global.Pow(values[i]-realValues[i],2);
             }
         }
