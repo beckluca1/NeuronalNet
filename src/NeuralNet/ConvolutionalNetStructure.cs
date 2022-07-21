@@ -1,5 +1,43 @@
 namespace NeuralNet
 {
+public static class Global
+    {
+        public static Random RANDOM = new Random();
+
+        public static float RandomFloat(float max, float min=0)
+        {
+            return (float)(RANDOM.NextDouble()*(max-min)+min);
+        }
+
+        public static float Pow(float value, float exponent) 
+        {
+            return (float)(Math.Pow((double)value,(double)exponent));
+        }
+
+        public static float ReLu(float value)
+        {
+            float squash = Sigmoid(value);
+            return squash;
+        }
+
+        public static float DReLu(float value)
+        {
+            float dSquash = DSigmoid(value);
+
+            return dSquash;
+        }
+
+        public static float Sigmoid(float value)
+        {
+            return (float)(1/(Math.Exp(-value)+1));
+        }
+
+        public static float DSigmoid(float value)
+        {
+            return Sigmoid(value)*(1-Sigmoid(value));
+        }
+    }
+
     public enum NeuronType
     {
         Input = 0,
@@ -26,7 +64,7 @@ namespace NeuralNet
             dValuesCount = new List<int>();
             for(int i=0;i<mapArea;i++) dValuesCount.Add(0);
 
-            Console.WriteLine("Added Input map with size "+mapSize);
+            //Console.WriteLine("Added Input map with size "+mapSize);
         }
 
         public void SetInput(byte[] inValues)
@@ -66,10 +104,8 @@ namespace NeuralNet
 
     public class ConvolutionalMap : NeuralMap
     {
-        int filterSize;
-        List<NeuralKernel> kernels;
-
-        List<float> partialActivations;
+        public int filterSize;
+        public List<NeuralKernel> kernels;
 
         public ConvolutionalMap(int inFilterSize, List<NeuralMap> inPreviousMaps)
         {
@@ -79,9 +115,6 @@ namespace NeuralNet
             previousMaps = inPreviousMaps;
             mapSize = previousMaps[0].mapSize-filterSize+1;
             mapArea = mapSize*mapSize;
-
-            partialActivations = new List<float>();
-            for(int i=0;i<mapArea*previousMaps.Count;i++) partialActivations.Add(0);
 
             activations = new List<float>();
             for(int i=0;i<mapArea;i++) activations.Add(0);
@@ -94,13 +127,12 @@ namespace NeuralNet
             kernels = new List<NeuralKernel>();
             for(int i=0;i<previousMaps.Count;i++) kernels.Add(new NeuralKernel(filterSize));
 
-            Console.WriteLine("Added Convolutional map with size "+mapSize);
+            //Console.WriteLine("Added Convolutional map with size "+mapSize);
         }
 
         override public void Update() 
         {
             for(int i=0;i<mapArea;i++) activations[i] = 0;
-            for(int i=0;i<mapArea*previousMaps.Count;i++) partialActivations[i] = 0;
 
             for(int i=0;i<previousMaps.Count;i++)
             {
@@ -115,7 +147,6 @@ namespace NeuralNet
                         {
                             for(int dX=0;dX<filterSize;dX++)
                             {
-                                partialActivations[i+previousMaps.Count*x+previousMaps.Count*mapSize*y] += previousMap.values[(x+dX)+previousMapSize*(y+dY)]*kernel.weights[dX+filterSize*dY];
                                 activations[x+mapSize*y] += previousMap.values[(x+dX)+previousMapSize*(y+dY)]*kernel.weights[dX+filterSize*dY];
                             }
                         }
@@ -178,7 +209,7 @@ namespace NeuralNet
 
     public class PoolingMap : NeuralMap
     {
-        int poolingSize;
+        public int poolingSize;
 
         public PoolingMap(int inPoolingSize, NeuralMap inPreviousMap)
         {
@@ -198,7 +229,7 @@ namespace NeuralNet
             dValuesCount = new List<int>();
             for(int i=0;i<mapArea;i++) dValuesCount.Add(0);
 
-            Console.WriteLine("Added Pooling map with size "+mapSize);
+            //Console.WriteLine("Added Pooling map with size "+mapSize);
         }
 
         override public void Update()
@@ -288,6 +319,7 @@ namespace NeuralNet
             type = NeuronType.Connected;
 
             previousMaps = inPreviousMaps;
+            mapSize = inMapArea;
             mapArea = inMapArea;
 
             activations = new List<float>();
@@ -311,7 +343,7 @@ namespace NeuralNet
             dWeightsCount = new List<int>();
             for(int i=0;i<mapArea*previousMaps.Count*previousMaps[0].mapArea;i++) dWeightsCount.Add(0);
 
-            Console.WriteLine("Added Connected map with size "+mapArea);
+            //Console.WriteLine("Added Connected map with size "+mapArea);
         }
 
         override public void Update()
@@ -446,41 +478,57 @@ namespace NeuralNet
     {
         NeuronType type;
 
-        List<List<NeuralMap>> neuralMaps = new List<List<NeuralMap>>(8);
+        public List<List<NeuralMap>> neuralMaps = new List<List<NeuralMap>>(8);
 
         public float cost = 0;
         public int correct = 0;
 
         public ConvolutionalNet()
         {
-            for(int i=0;i<9;i++)
+            int layerCount = 9;
+            int[] layerSizes = {3,10,10,15,15,20,20,1,1};
+            int[] mapSizes = {46,44,22,20,10,8,4,25,5};
+            NeuronType[] neuronTypes = {NeuronType.Input,NeuronType.Convolutional,NeuronType.Pooling,NeuronType.Convolutional,NeuronType.Pooling,NeuronType.Convolutional,NeuronType.Pooling,NeuronType.Connected,NeuronType.Connected};
+            int[] filterSizes = {1,3,2,3,2,3,2,1,1};
+
+            for(int i=0;i<layerCount;i++)
             {
+                NeuronType type = neuronTypes[i];
                 neuralMaps.Add(new List<NeuralMap>());
+                for(int j=0;j<layerSizes[i];j++)
+                {
+                    if(type==NeuronType.Input)
+                        neuralMaps[i].Add(new InputMap(mapSizes[i]));
+                   if(type==NeuronType.Convolutional)
+                        neuralMaps[i].Add(new ConvolutionalMap(filterSizes[i],neuralMaps[i-1]));
+                   if(type==NeuronType.Pooling)
+                        neuralMaps[i].Add(new PoolingMap(filterSizes[i],neuralMaps[i-1][j]));
+                   if(type==NeuronType.Connected)
+                        neuralMaps[i].Add(new ConnectedMap(mapSizes[i],neuralMaps[i-1]));
+                }
+
             }
+        }
 
-            int[] mapCount = {3,10,15,20};
+        public ConvolutionalNet(int layerCount, int[] layerSizes, int[] mapSizes, NeuronType[] neuronTypes, int[] filterSizes)
+        {
+            for(int i=0;i<layerCount;i++)
+            {
+                NeuronType type = neuronTypes[i];
+                neuralMaps.Add(new List<NeuralMap>());
+                for(int j=0;j<layerSizes[i];j++)
+                {
+                    if(type==NeuronType.Input)
+                        neuralMaps[i].Add(new InputMap(mapSizes[i]));
+                   if(type==NeuronType.Convolutional)
+                        neuralMaps[i].Add(new ConvolutionalMap(filterSizes[i],neuralMaps[i-1]));
+                   if(type==NeuronType.Pooling)
+                        neuralMaps[i].Add(new PoolingMap(filterSizes[i],neuralMaps[i-1][j]));
+                   if(type==NeuronType.Connected)
+                        neuralMaps[i].Add(new ConnectedMap(mapSizes[i],neuralMaps[i-1]));
+                }
 
-            for(int i=0;i<mapCount[0];i++)
-                neuralMaps[0].Add(new InputMap(46));
-
-            for(int i=0;i<mapCount[1];i++)
-                neuralMaps[1].Add(new ConvolutionalMap(3,neuralMaps[0]));
-            for(int i=0;i<mapCount[1];i++)
-                neuralMaps[2].Add(new PoolingMap(2,neuralMaps[1][i]));
-
-            for(int i=0;i<mapCount[2];i++)
-                neuralMaps[3].Add(new ConvolutionalMap(3,neuralMaps[2]));
-            for(int i=0;i<mapCount[2];i++)
-                neuralMaps[4].Add(new PoolingMap(2,neuralMaps[3][i]));
-
-            for(int i=0;i<mapCount[3];i++)
-                neuralMaps[5].Add(new ConvolutionalMap(3,neuralMaps[4]));
-            for(int i=0;i<mapCount[3];i++)
-                neuralMaps[6].Add(new PoolingMap(2,neuralMaps[5][i]));    
-
-            neuralMaps[7].Add(new ConnectedMap(25,neuralMaps[6]));   
-            neuralMaps[8].Add(new ConnectedMap(5,neuralMaps[7]));   
-
+            }
         }
 
         public void SetInput(byte[] inputR, byte[] inputG, byte[] inputB)

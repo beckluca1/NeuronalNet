@@ -9,7 +9,7 @@ namespace NeuronalNetServer.Services
         #region Fields
 
         private Credentials _credentials = default!;
-        private ComplexNeuralNet _net;
+        private ConvolutionalNet _net;
         private readonly DatabaseService _dbService;
 
         public float cost = 0;
@@ -26,7 +26,7 @@ namespace NeuronalNetServer.Services
             _dbService = new DatabaseService();
             _dbService.Initialize(_credentials.DbConnectionString!);
 
-            _net = new ComplexNeuralNet();
+            _net = new ConvolutionalNet();
         }
 
         #endregion
@@ -53,19 +53,29 @@ namespace NeuronalNetServer.Services
 
             List<float> trainingValues = new List<float>();
 
-            _net.Update(loadedSign.Red.ToByteArray(), loadedSign.Green.ToByteArray(), loadedSign.Blue.ToByteArray());
+            _net.SetInput(loadedSign.Red.ToByteArray(), loadedSign.Green.ToByteArray(), loadedSign.Blue.ToByteArray());
+            _net.Update();
+
             for (int i = 0; i < 5; i++)
             {
                 trainingValues.Add(i == number ? 1 : 0);
             }
-            _net.CalculateChanges(trainingValues, number);
+            _net.CalculateCost(trainingValues);
+            _net.Correct(number);
+            _net.CalculateChanges();
         }
 
         public void Improve()
         {
             _net.Improve();
             cost = _net.cost;
+            _net.cost = 0;
             correct = _net.correct;
+            _net.correct = 0;
+
+            //List<float> saveState = NetSaveState.saveFromNet(_net);
+            //_net = NetSaveState.readFromSaveState(saveState);
+
             Console.WriteLine(cost/10.0f + "; "+(((float)correct)/10.0f*100)+"%");
         }
 

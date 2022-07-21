@@ -5,6 +5,9 @@ namespace NeuronalNetServer.Helpers
 {
     public static class ServiceInitialization
     {
+        static NeuralCalculator calculator = new NeuralCalculator();
+        static bool shutDown = false;
+
         public static void StartGrpcService()
         {
             var builder = WebApplication.CreateBuilder();
@@ -38,24 +41,20 @@ namespace NeuronalNetServer.Helpers
         {
             Console.WriteLine("Init Neural Net");
 
-            NeuralCalculator calculator = new NeuralCalculator();
+            calculate(0);
+        }
 
-            int type = 0;
+        public static void calculate(int i)
+        {
+            if(i>0&&i%10==0)
+                calculator.Improve();
+                        
+            int type = i % 5;
+            calculator.Calculate(type);
 
-            for(int i=0;i<15000000;i++)
-            {
+            Thread.Sleep(10);    
 
-                if(i>0&&i%10==0)
-                    calculator.Improve();
-                
-                calculator.Calculate(type);
-
-
-                type = (type+1) % 5;
-                //Console.WriteLine(type);
-
-                Thread.Sleep(10);
-            }
+            calculate(i+1);        
         }
     }
 }
