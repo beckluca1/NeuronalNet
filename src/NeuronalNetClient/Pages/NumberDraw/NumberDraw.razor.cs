@@ -6,10 +6,13 @@ using System.Reflection;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
+using NeuralNet;
+
 namespace NeuronalNetClient.Pages.NumberDraw
 {
     public partial class NumberDraw
     {
+        private static ConvolutionalNet currentNet = new ConvolutionalNet();
         private static TrafficSign toBeUploadedSign = new TrafficSign();
 
         const int BinaryDataLength = 46 * 46;
@@ -115,6 +118,30 @@ namespace NeuronalNetClient.Pages.NumberDraw
             };  
 
             toBeUploadedSign = sign;
+        }
+
+        [JSInvokable]
+        public static void GetNetData(int[] data)
+        {
+            List<byte> redData = new List<byte>();
+            List<byte> greenData = new List<byte>();
+            List<byte> blueData = new List<byte>();
+
+            Console.WriteLine("Got Data"+data[0]);
+            for(int i=0;i<data[0]*data[0];i++) 
+            {
+                redData.Add((byte)data[i*3+1]);
+                greenData.Add((byte)data[i*3+2]);
+                blueData.Add((byte)data[i*3+3]);
+            }
+
+            currentNet.SetInput(redData.ToArray(), greenData.ToArray(), blueData.ToArray());
+            currentNet.Update();
+        }
+
+        public async void UpdateJSNet()
+        {
+            await CallJSFunction("updateNet",currentNet.GetOutput().ToArray());
         }
 
         #endregion

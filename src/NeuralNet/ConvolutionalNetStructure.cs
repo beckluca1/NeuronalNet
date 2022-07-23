@@ -536,6 +536,8 @@ namespace NeuralNet
 
         public void SetInput(byte[] inputR, byte[] inputG, byte[] inputB)
         {
+            //Console.WriteLine("Hello, World");
+
             int inputSize = 46*46;
 
             List<float> dataR = new List<float>();
@@ -557,7 +559,7 @@ namespace NeuralNet
 
         public List<float> GetOutput()
         {
-            return neuralMaps[8][0].GetValues();
+            return neuralMaps[neuralMaps.Count-1][0].GetValues();
         }
 
         public void CalculateCost(List<float> realValues)
@@ -565,7 +567,7 @@ namespace NeuralNet
             List<float> values = GetOutput();
             for(int i=0;i<values.Count;i++)
             {
-                neuralMaps[8][0].dValues[i] = 2*(neuralMaps[8][0].values[i]-realValues[i])*Global.DSigmoid(neuralMaps[8][0].activations[i]);
+                neuralMaps[neuralMaps.Count-1][0].dValues[i] = 2*(neuralMaps[neuralMaps.Count-1][0].values[i]-realValues[i])*Global.DSigmoid(neuralMaps[neuralMaps.Count-1][0].activations[i]);
                 cost += Global.Pow(values[i]-realValues[i],2);
             }
         }
