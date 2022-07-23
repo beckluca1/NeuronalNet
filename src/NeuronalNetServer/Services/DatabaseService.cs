@@ -62,10 +62,11 @@ namespace NeuronalNetServer.Services
         public void InsertNeuralNet(ConvolutionalNet neuralNet, int rating)
         {
             string sqlInsert = @"insert into neural_net (net_data, rating, uploaded)
-                                 values (@NET_DATA, @RATING, now())";
+                                 values (@NET_DATA, @NET_SIZE, @RATING, now())";
 
             MySqlParameter[] parameters = {
                 new MySqlParameter("@NET_DATA", NetSaveStateHandler.saveFromNet(neuralNet)),
+                new MySqlParameter("@NET_SIZE", NetSaveStateHandler.saveFromNet(neuralNet).Length),
                 new MySqlParameter("@RATING", rating)
             };
 
@@ -165,7 +166,7 @@ namespace NeuronalNetServer.Services
 
                 while (reader.Read())
                 {
-                    uint size = reader.GetUInt32(reader.GetOrdinal("net_data"));
+                    uint size = reader.GetUInt32(reader.GetOrdinal("net_size"));
                     byte[] netData = new byte[size];
 
                     reader.GetBytes(reader.GetOrdinal("net_data"), 0, netData, 0, (int)size);
@@ -190,7 +191,7 @@ namespace NeuronalNetServer.Services
 
                 reader.Read();
 
-                uint size = reader.GetUInt32(reader.GetOrdinal("net_data"));
+                uint size = reader.GetUInt32(reader.GetOrdinal("net_size"));
                 byte[] netData = new byte[size];
                 int netRating;
 

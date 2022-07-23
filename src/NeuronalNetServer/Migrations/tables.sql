@@ -11,6 +11,7 @@ create table traffic_sign (
 create table neural_net (
 	id int unsigned auto_increment,
 	net_data blob not null,
+	net_size int unsigned not null,
 	rating int not null,
 	uploaded datetime not null,
 	primary key (id)
