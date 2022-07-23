@@ -13,6 +13,7 @@ namespace NeuralNet
 
         public static byte[] saveFromNet(ConvolutionalNet net)
         {
+            DataList = new List<float>();
             layerCount = net.neuralMaps.Count;
             DataList.Add(layerCount);
             for(int i=0;i<layerCount;i++)
@@ -75,7 +76,7 @@ namespace NeuralNet
 
         public static ConvolutionalNet readFromSaveState(byte[] inDataByteList)
         {
-            List<float> inDataList = Global.byteToFloat(inDataByteList);
+            List<float> DataList = Global.byteToFloat(inDataByteList);
             layerCount = (int)DataList[0];
             DataList.RemoveRange(0,1);
             for(int i=0;i<layerCount;i++)
@@ -129,8 +130,7 @@ namespace NeuralNet
                         }
                     }
                 }
-            }
-            
+            }            
             return net;
         }
     }

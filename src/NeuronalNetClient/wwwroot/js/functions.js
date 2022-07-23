@@ -183,9 +183,9 @@ function intervalCall()
     else if(maxIndex==2)
         text = "Tempolimit 50"
     else if(maxIndex==3)
-        text = "Vorfahrt gewähren"
-    else if(maxIndex==4)
         text = "Vorfahrtsstraße"
+    else if(maxIndex==4)
+        text = "Vorfahrt gewähren"
 
     ctx.font = "10px Georgia";
     ctx.fillText(text, canvasWidth+155, 12+maxIndex*20);
@@ -202,9 +202,9 @@ function callNetUpdate()
     var allData = [];
     allData.push(size);
 
-    for (var x=0;x<46;x++)
+    for (var y=0;y<46;y++)
     {
-        for (var y=0;y<46;y++)
+        for (var x=0;x<46;x++)
         {
             allData.push(myData.data[0+x*4+y*4*46]);
             allData.push(myData.data[1+x*4+y*4*46]);

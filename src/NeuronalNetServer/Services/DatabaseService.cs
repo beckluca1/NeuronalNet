@@ -48,7 +48,7 @@ namespace NeuronalNetServer.Services
 
         public NeuralNetData GetLatestNeuralNet()
         {
-            string sqlSelect = @"select net_data, rating from neural_net
+            string sqlSelect = @"select net_data, net_size, rating from neural_net
                                  order by uploaded desc limit 1";
 
             MySqlCommand command = new MySqlCommand(sqlSelect, _connection);
@@ -61,12 +61,14 @@ namespace NeuronalNetServer.Services
 
         public void InsertNeuralNet(ConvolutionalNet neuralNet, int rating)
         {
-            string sqlInsert = @"insert into neural_net (net_data, rating, uploaded)
+            string sqlInsert = @"insert into neural_net (net_data, net_size, rating, uploaded)
                                  values (@NET_DATA, @NET_SIZE, @RATING, now())";
 
+            byte[] netByteData = NetSaveStateHandler.saveFromNet(neuralNet);
+
             MySqlParameter[] parameters = {
-                new MySqlParameter("@NET_DATA", NetSaveStateHandler.saveFromNet(neuralNet)),
-                new MySqlParameter("@NET_SIZE", NetSaveStateHandler.saveFromNet(neuralNet).Length),
+                new MySqlParameter("@NET_DATA", netByteData),
+                new MySqlParameter("@NET_SIZE", netByteData.Length),
                 new MySqlParameter("@RATING", rating)
             };
 

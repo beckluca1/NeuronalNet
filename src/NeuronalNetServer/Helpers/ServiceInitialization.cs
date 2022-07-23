@@ -49,13 +49,14 @@ namespace NeuronalNetServer.Helpers
                 if(i>0&&i%10==0)
                     calculator.Improve();
 
-                if(i>0&&i%1000==0)
-                    calculator.uploadCurrentNet();
+                //if(i>0&&i%1000==0)
+                    //calculator.uploadCurrentNet();
                             
                 int type = i % 5;
                 calculator.Calculate(type);
 
-                Thread.Sleep(10);    
+                Thread.Sleep(10);
+                i++;
             }
         }
     }

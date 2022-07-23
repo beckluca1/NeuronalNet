@@ -38,7 +38,7 @@ namespace NeuralNet
             Buffer.BlockCopy(data, 0, floatArray, 0, data.Length);
 
             List<float> floatList = new List<float>();
-            for(int i=0;i<data.Length / 4;i++)
+            for(int i=0;i<floatArray.Length;i++)
                 floatList.Add(floatArray[i]);
 
             return floatList;
@@ -569,9 +569,10 @@ namespace NeuralNet
         public void CalculateCost(List<float> realValues)
         {
             List<float> values = GetOutput();
+            int maxIndex = neuralMaps.Count-1;
             for(int i=0;i<values.Count;i++)
             {
-                neuralMaps[neuralMaps.Count-1][0].dValues[i] = 2*(neuralMaps[neuralMaps.Count-1][0].values[i]-realValues[i])*Global.DSigmoid(neuralMaps[neuralMaps.Count-1][0].activations[i]);
+                neuralMaps[maxIndex][0].dValues[i] = 2*(neuralMaps[maxIndex][0].values[i]-realValues[i])*Global.DSigmoid(neuralMaps[maxIndex][0].activations[i]);
                 cost += Global.Pow(values[i]-realValues[i],2);
             }
         }
