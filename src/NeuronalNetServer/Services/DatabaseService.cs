@@ -33,9 +33,9 @@ namespace NeuronalNetServer.Services
 
             MySqlParameter[] parameters = {
                 new MySqlParameter("@IDENTIFIER", identifier),
-            };   
+            };
 
-            MySqlCommand command = new MySqlCommand(sqlSelect, _connection);    
+            MySqlCommand command = new MySqlCommand(sqlSelect, _connection);
             command.Parameters.AddRange(parameters);
             command.Prepare();
 
@@ -46,6 +46,19 @@ namespace NeuronalNetServer.Services
             command.Dispose();
         }
 
+        public NeuralNetData GetLatestNeuralNet()
+        {
+            string sqlSelect = @"select net_data, rating from neuralnet
+                                 order by uploaded desc limit 1";
+
+            MySqlCommand command = new MySqlCommand(sqlSelect, _connection);
+            var dataReader = command.ExecuteReader();
+
+            var netData = GetSingleNetData(dataReader);
+
+            return netData;
+        }
+
         public void InsertNeuralNet(ConvolutionalNet neuralNet, int rating)
         {
             string sqlInsert = @"insert into neural_net (net_data, rating, uploaded)
@@ -54,7 +67,7 @@ namespace NeuronalNetServer.Services
             MySqlParameter[] parameters = {
                 new MySqlParameter("@NET_DATA", neuralNet),
                 new MySqlParameter("@RATING", rating)
-            };    
+            };
 
             MySqlCommand command = new MySqlCommand(sqlInsert, _connection);
             command.Parameters.AddRange(parameters);
@@ -108,7 +121,7 @@ namespace NeuronalNetServer.Services
                 new MySqlParameter("@RED", trafficSign.Red.ToByteArray()),
                 new MySqlParameter("@GREEN", trafficSign.Green.ToByteArray()),
                 new MySqlParameter("@BLUE", trafficSign.Blue.ToByteArray())
-            };                                 
+            };
 
             MySqlCommand command = new MySqlCommand(sqlInsert, _connection);
             command.Parameters.AddRange(parameters);
@@ -129,8 +142,9 @@ namespace NeuronalNetServer.Services
 
             var numberOfSigns = ExtractSignNumberReader(dataReader);
 
-            return numberOfSigns; 
+            return numberOfSigns;
         }
+
 
         #endregion
 
@@ -159,6 +173,35 @@ namespace NeuronalNetServer.Services
                     NetSaveStateHandler.DataList = Global.byteToFloat(netData).ToList<float>();
                 }
             }
+        }
+
+        private NeuralNetData GetSingleNetData(MySqlDataReader reader)
+        {
+            NeuralNetData neuralNetData = new NeuralNetData
+            {
+                NetData = null,
+                Rating = default
+            };
+
+            using (reader)
+            {
+                if (!reader.HasRows)
+                    return neuralNetData;
+
+                reader.Read();
+
+                uint size = reader.GetUInt32(reader.GetOrdinal("net_data"));
+                byte[] netData = new byte[size];
+                int netRating;
+
+                reader.GetBytes(reader.GetOrdinal("net_data"), 0, netData, 0, (int)size);
+                netRating = reader.GetInt32(reader.GetOrdinal("reting"));
+
+                neuralNetData.NetData = Google.Protobuf.ByteString.CopyFrom(netData);
+                neuralNetData.Rating = netRating;
+            }
+
+            return neuralNetData;
         }
 
         private List<TrafficSign> BuildTrafficSignList(MySqlDataReader reader)
@@ -225,7 +268,7 @@ namespace NeuronalNetServer.Services
 
                     return emptyNumberOfSigns;
                 }
-                
+
                 while (reader.Read())
                 {
                     signNumbers.Add(reader.GetString("sign_type"), reader.GetInt32("number"));
@@ -236,8 +279,8 @@ namespace NeuronalNetServer.Services
         }
 
         private NumberOfSigns BuildNumberOfSigns(Dictionary<string, int> numberOfSignsDict)
-         {
-             int stop = 0;
+        {
+            int stop = 0;
             numberOfSignsDict.TryGetValue(SignType.Stop.ToString(), out stop);
 
             int thirtySpeedLimit = 0;
@@ -267,7 +310,7 @@ namespace NeuronalNetServer.Services
 
             return numberOfSigns;
 
-         }
+        }
 
         #endregion
 

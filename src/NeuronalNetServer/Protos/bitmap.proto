@@ -11,6 +11,8 @@ service Uploader {
   rpc SendMultipleTrafficSigns (stream TrafficSign) returns (SuccessReply);
 
   rpc GetSignTypeData (Null) returns (NumberOfSigns);
+
+  rpc GetNeuralNetData (Null) returns (NeuralNetData);
 }
 
 message BitmapData {
@@ -26,12 +28,17 @@ message TrafficSign {
 }
 
 message NumberOfSigns {
-  int32 Stop = 1;
-  int32 ThirtySpeedLimit = 2;
-  int32 FiftySpeedLimit = 3;
-  int32 PriorityRoad = 4;
-  int32 GiveWay = 5;
-  int32 Unclassified = 6;
+  int32 stop = 1;
+  int32 thirty_speed_limit = 2;
+  int32 fifty_speed_limit = 3;
+  int32 priority_road = 4;
+  int32 give_way = 5;
+  int32 unclassified = 6;
+}
+
+message NeuralNetData {
+  bytes net_data = 1;
+  int32 rating = 2;
 }
 
 message SuccessReply {

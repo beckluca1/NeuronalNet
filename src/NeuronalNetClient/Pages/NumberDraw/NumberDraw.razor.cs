@@ -37,6 +37,13 @@ namespace NeuronalNetClient.Pages.NumberDraw
             await GrpcUploader.SendTrafficSignAsync(toBeUploadedSign);
         }
 
+        private async Task<NeuralNetData> GetLatestNeuralNet()
+        {
+            NeuralNetData latestNeuralNet = await GrpcUploader.GetNeuralNetDataAsync(new Null());
+
+            return latestNeuralNet;
+        }
+
         private async Task UploadMultipleTrafficSigns()
         {
             var trafficSignList = new List<TrafficSign>();
