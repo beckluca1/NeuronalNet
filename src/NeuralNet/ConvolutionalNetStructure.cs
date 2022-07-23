@@ -32,12 +32,16 @@ namespace NeuralNet
             return byteArray;
         }
 
-        public static float[] byteToFloat(byte[] data)
+        public static List<float> byteToFloat(byte[] data)
         {
             float[] floatArray = new float[data.Length / 4];
             Buffer.BlockCopy(data, 0, floatArray, 0, data.Length);
 
-            return floatArray;
+            List<float> floatList = new List<float>();
+            for(int i=0;i<data.Length / 4;i++)
+                floatList.Add(floatArray[i]);
+
+            return floatList;
         }
     }
 

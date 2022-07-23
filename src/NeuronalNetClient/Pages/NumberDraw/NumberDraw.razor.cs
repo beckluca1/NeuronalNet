@@ -141,6 +141,7 @@ namespace NeuronalNetClient.Pages.NumberDraw
 
         public async void UpdateJSNet()
         {
+            currentNet = NetSaveStateHandler.readFromSaveState((await GetLatestNeuralNet()).NetData.ToByteArray());
             await CallJSFunction("updateNet",currentNet.GetOutput().ToArray());
         }
 

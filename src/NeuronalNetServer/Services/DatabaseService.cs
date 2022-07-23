@@ -48,7 +48,7 @@ namespace NeuronalNetServer.Services
 
         public NeuralNetData GetLatestNeuralNet()
         {
-            string sqlSelect = @"select net_data, rating from neuralnet
+            string sqlSelect = @"select net_data, rating from neural_net
                                  order by uploaded desc limit 1";
 
             MySqlCommand command = new MySqlCommand(sqlSelect, _connection);
@@ -65,7 +65,7 @@ namespace NeuronalNetServer.Services
                                  values (@NET_DATA, @RATING, now())";
 
             MySqlParameter[] parameters = {
-                new MySqlParameter("@NET_DATA", neuralNet),
+                new MySqlParameter("@NET_DATA", NetSaveStateHandler.saveFromNet(neuralNet)),
                 new MySqlParameter("@RATING", rating)
             };
 
@@ -179,7 +179,7 @@ namespace NeuronalNetServer.Services
         {
             NeuralNetData neuralNetData = new NeuralNetData
             {
-                NetData = null,
+                NetData = Google.Protobuf.ByteString.CopyFrom(new byte[0]),
                 Rating = default
             };
 
@@ -195,7 +195,7 @@ namespace NeuronalNetServer.Services
                 int netRating;
 
                 reader.GetBytes(reader.GetOrdinal("net_data"), 0, netData, 0, (int)size);
-                netRating = reader.GetInt32(reader.GetOrdinal("reting"));
+                netRating = reader.GetInt32(reader.GetOrdinal("rating"));
 
                 neuralNetData.NetData = Google.Protobuf.ByteString.CopyFrom(netData);
                 neuralNetData.Rating = netRating;

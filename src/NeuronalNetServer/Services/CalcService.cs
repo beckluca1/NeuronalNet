@@ -39,10 +39,22 @@ namespace NeuronalNetServer.Services
 
             List<TrafficSign> signs = _dbService.GetTrafficSignType(type);
             if(signs.Count==0)
+            {
+                Console.WriteLine("No net exisiting");
                 return null;
+            }
             int randomIndex = new Random().Next() % signs.Count;
 
             return signs[randomIndex];
+        }
+
+        public void InitNet()
+        {   
+            NeuralNetData netData = _dbService.GetLatestNeuralNet();
+            if(netData.Rating==0)
+                return;
+            _net = NetSaveStateHandler.readFromSaveState(_dbService.GetLatestNeuralNet().NetData.ToByteArray());
+
         }
 
         public void Calculate(int number)
@@ -65,6 +77,11 @@ namespace NeuronalNetServer.Services
             _net.CalculateChanges();
         }
 
+        public void uploadCurrentNet()
+        {
+            _dbService.InsertNeuralNet(_net,correct*10);
+        }
+
         public void Improve()
         {
             _net.Improve();
@@ -72,9 +89,6 @@ namespace NeuronalNetServer.Services
             _net.cost = 0;
             correct = _net.correct;
             _net.correct = 0;
-
-            //List<float> saveState = NetSaveState.saveFromNet(_net);
-            //_net = NetSaveState.readFromSaveState(saveState);
 
             Console.WriteLine(cost/10.0f + "; "+(((float)correct)/10.0f*100)+"%");
         }

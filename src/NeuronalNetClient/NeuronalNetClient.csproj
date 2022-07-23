@@ -20,6 +20,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.2" PrivateAssets="all" />
     <PackageReference Include="Grpc.Net.Client" Version="2.46.0" />
     <PackageReference Include="Grpc.Net.Client.Web" Version="2.46.0" />
+    <PackageReference Include="Blazor.Extensions.Canvas" Version="1.1.1" />
   </ItemGroup>
 
   <ItemGroup>

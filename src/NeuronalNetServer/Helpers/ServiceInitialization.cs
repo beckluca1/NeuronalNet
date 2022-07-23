@@ -41,20 +41,22 @@ namespace NeuronalNetServer.Helpers
         {
             Console.WriteLine("Init Neural Net");
 
-            calculate(0);
-        }
+            calculator.InitNet();
 
-        public static void calculate(int i)
-        {
-            if(i>0&&i%10==0)
-                calculator.Improve();
-                        
-            int type = i % 5;
-            calculator.Calculate(type);
+            int i=0;
+            while(true)
+            {
+                if(i>0&&i%10==0)
+                    calculator.Improve();
 
-            Thread.Sleep(10);    
+                if(i>0&&i%1000==0)
+                    calculator.uploadCurrentNet();
+                            
+                int type = i % 5;
+                calculator.Calculate(type);
 
-            calculate(i+1);        
+                Thread.Sleep(10);    
+            }
         }
     }
 }
