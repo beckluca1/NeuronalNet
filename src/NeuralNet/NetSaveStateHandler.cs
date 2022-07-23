@@ -9,12 +9,12 @@ namespace NeuralNet
         static List<int> info = new List<int>();
         static List<NeuronType> neuronTypes = new List<NeuronType>();
 
-        static List<float> dataList = new List<float>();
+        public static List<float> DataList = new List<float>();
 
         public static List<float> saveFromNet(ConvolutionalNet net)
         {
             layerCount = net.neuralMaps.Count;
-            dataList.Add(layerCount);
+            DataList.Add(layerCount);
             for(int i=0;i<layerCount;i++)
             {
                 layerSizes.Add(net.neuralMaps[i].Count);
@@ -30,11 +30,11 @@ namespace NeuralNet
                 else
                     info.Add(((ConnectedMap)net.neuralMaps[i][0]).previousMaps[0].mapArea);
    
-                dataList.Add(layerSizes[i]);
-                dataList.Add(mapSizes[i]);
-                dataList.Add(previousMapCount[i]);
-                dataList.Add((float)neuronTypes[i]);
-                dataList.Add(info[i]);
+                DataList.Add(layerSizes[i]);
+                DataList.Add(mapSizes[i]);
+                DataList.Add(previousMapCount[i]);
+                DataList.Add((float)neuronTypes[i]);
+                DataList.Add(info[i]);
             }
 
             for(int i=0;i<layerCount;i++)
@@ -47,7 +47,7 @@ namespace NeuralNet
                         {
                             for(int l=0;l<info[i]*info[i];l++)
                             {
-                                dataList.Add(((ConvolutionalMap)net.neuralMaps[i][j]).kernels[k].weights[l]);
+                                DataList.Add(((ConvolutionalMap)net.neuralMaps[i][j]).kernels[k].weights[l]);
                             }
                         }
                     }
@@ -58,39 +58,39 @@ namespace NeuralNet
                     {
                         for(int k=0;k<mapSizes[i];k++)
                         {
-                            dataList.Add(((ConnectedMap)net.neuralMaps[i][j]).bias[k]);
+                            DataList.Add(((ConnectedMap)net.neuralMaps[i][j]).bias[k]);
                         }
                         for(int k=0;k<mapSizes[i]*previousMapCount[i]*info[i];k++)
                         {
-                            dataList.Add(((ConnectedMap)net.neuralMaps[i][j]).weights[k]);
+                            DataList.Add(((ConnectedMap)net.neuralMaps[i][j]).weights[k]);
                         }
                     }
                 }
             }
 
-            return dataList;
+            return DataList;
         }
 
         public static ConvolutionalNet readFromSaveState(List<float> inDataList)
         {
-            layerCount = (int)dataList[0];
-            dataList.RemoveRange(0,1);
+            layerCount = (int)DataList[0];
+            DataList.RemoveRange(0,1);
             for(int i=0;i<layerCount;i++)
             {
-                layerSizes.Add((int)dataList[0]);
-                mapSizes.Add((int)dataList[1]);
-                previousMapCount.Add((int)dataList[2]);
-                neuronTypes.Add((NeuronType)dataList[3]);
+                layerSizes.Add((int)DataList[0]);
+                mapSizes.Add((int)DataList[1]);
+                previousMapCount.Add((int)DataList[2]);
+                neuronTypes.Add((NeuronType)DataList[3]);
                 if(neuronTypes[i]==NeuronType.Input)
-                    info.Add((int)dataList[4]);
+                    info.Add((int)DataList[4]);
                 else if(neuronTypes[i]==NeuronType.Convolutional)
-                    info.Add((int)dataList[4]);
+                    info.Add((int)DataList[4]);
                 else if(neuronTypes[i]==NeuronType.Pooling)
-                    info.Add((int)dataList[4]);
+                    info.Add((int)DataList[4]);
                 else
-                    info.Add((int)dataList[4]);
+                    info.Add((int)DataList[4]);
    
-                dataList.RemoveRange(0,5);
+                DataList.RemoveRange(0,5);
             }
             ConvolutionalNet net = new ConvolutionalNet(layerCount, layerSizes.ToArray(), mapSizes.ToArray(), neuronTypes.ToArray(), info.ToArray());
             
@@ -104,8 +104,8 @@ namespace NeuralNet
                         {
                             for(int l=0;l<info[i]*info[i];l++)
                             {
-                                ((ConvolutionalMap)net.neuralMaps[i][j]).kernels[k].weights[l] = dataList[0];
-                                dataList.RemoveRange(0,1);
+                                ((ConvolutionalMap)net.neuralMaps[i][j]).kernels[k].weights[l] = DataList[0];
+                                DataList.RemoveRange(0,1);
                             }
                         }
                     }
@@ -116,13 +116,13 @@ namespace NeuralNet
                     {
                         for(int k=0;k<mapSizes[i];k++)
                         {
-                            ((ConnectedMap)net.neuralMaps[i][j]).bias[k] = dataList[0];
-                            dataList.RemoveRange(0,1);
+                            ((ConnectedMap)net.neuralMaps[i][j]).bias[k] = DataList[0];
+                            DataList.RemoveRange(0,1);
                         }
                         for(int k=0;k<mapSizes[i]*previousMapCount[i]*info[i];k++)
                         {
-                            ((ConnectedMap)net.neuralMaps[i][j]).weights[k] = dataList[0];
-                            dataList.RemoveRange(0,1);
+                            ((ConnectedMap)net.neuralMaps[i][j]).weights[k] = DataList[0];
+                            DataList.RemoveRange(0,1);
                         }
                     }
                 }

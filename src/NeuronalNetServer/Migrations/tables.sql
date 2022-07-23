@@ -6,4 +6,12 @@ create table traffic_sign (
 	blue_data blob not null,
 	uploaded datetime not null,
 	primary key (id)
-)
+);
+
+create table neural_net (
+	id int unsigned auto_increment,
+	net_data blob not null,
+	rating int not null,
+	uploaded datetime not null,
+	primary key (id)
+);
