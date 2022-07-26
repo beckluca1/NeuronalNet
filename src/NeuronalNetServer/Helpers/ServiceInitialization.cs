@@ -49,8 +49,11 @@ namespace NeuronalNetServer.Helpers
                 if(i>0&&i%10==0)
                     calculator.Improve();
 
-                //if(i>0&&i%1000==0)
-                    //calculator.uploadCurrentNet();
+                if(i>0&&i%1000==0)
+                {
+                    calculator.uploadCurrentNet();
+                    Console.WriteLine("Updated net");
+                }
                             
                 int type = i % 5;
                 calculator.Calculate(type);

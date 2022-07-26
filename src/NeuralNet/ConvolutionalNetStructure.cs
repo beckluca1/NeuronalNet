@@ -74,15 +74,6 @@ namespace NeuralNet
             //Console.WriteLine("Added Input map with size "+mapSize);
         }
 
-        public void SetInput(byte[] inValues)
-        {
-            for(int i=0;i<mapArea;i++)
-            {
-                activations[i] = ((float)inValues[i])/255.0f;
-                values[i] = ((float)inValues[i])/255.0f;
-            }
-        }
-
         public override void Update()
         {
             for(int i=0;i<mapArea;i++) dValues[i] = 0;
@@ -483,8 +474,6 @@ namespace NeuralNet
 
     public class ConvolutionalNet
     {
-        NeuronType type;
-
         public List<List<NeuralMap>> neuralMaps = new List<List<NeuralMap>>(8);
 
         public float cost = 0;
@@ -494,9 +483,9 @@ namespace NeuralNet
         {
             int layerCount = 9;
             int[] layerSizes = {3,10,10,15,15,20,20,1,1};
-            int[] mapSizes = {46,44,22,20,10,8,4,25,5};
+            int[] mapSizes = {48,46,23,20,10,8,4,25,5};
             NeuronType[] neuronTypes = {NeuronType.Input,NeuronType.Convolutional,NeuronType.Pooling,NeuronType.Convolutional,NeuronType.Pooling,NeuronType.Convolutional,NeuronType.Pooling,NeuronType.Connected,NeuronType.Connected};
-            int[] filterSizes = {1,3,2,3,2,3,2,1,1};
+            int[] filterSizes = {1,3,2,4,2,3,2,1,1};
 
             for(int i=0;i<layerCount;i++)
             {
@@ -542,7 +531,7 @@ namespace NeuralNet
         {
             //Console.WriteLine("Hello, World");
 
-            int inputSize = 46*46;
+            int inputSize = 48*48;
 
             List<float> dataR = new List<float>();
             List<float> dataG = new List<float>();
@@ -553,7 +542,6 @@ namespace NeuralNet
                 dataR.Add((((float)inputR[i])/255.0f));
                 dataG.Add((((float)inputG[i])/255.0f));
                 dataB.Add((((float)inputB[i])/255.0f));
-                //Console.WriteLine(((float)inputR[i])/255.0f+", "+((float)inputG[i])/255.0f+", "+((float)inputB[i])/255.0f);
             }
 
             neuralMaps[0][0].SetValues(dataR);

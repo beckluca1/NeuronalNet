@@ -8,7 +8,7 @@ namespace NeuronalNetServer.Services
     {
         #region Fields
 
-        const int BinaryDataLength = 46 * 46;
+        const int BinaryDataLength = 48 * 48;
         private MySqlConnection _connection = default!;
 
         #endregion
@@ -70,6 +70,44 @@ namespace NeuronalNetServer.Services
                 new MySqlParameter("@NET_DATA", netByteData),
                 new MySqlParameter("@NET_SIZE", netByteData.Length),
                 new MySqlParameter("@RATING", rating)
+            };
+
+            MySqlCommand command = new MySqlCommand(sqlInsert, _connection);
+            command.Parameters.AddRange(parameters);
+            command.Prepare();
+
+            command.ExecuteNonQuery();
+
+            command.Dispose();
+        }
+
+        public List<TrafficImage> GetAllTrafficImages(int limit = 0)
+        {
+            string sqlSelect = "select * from traffic_image";
+
+            MySqlCommand command = new MySqlCommand(sqlSelect, _connection);
+            command.Prepare();
+
+            var data = command.ExecuteReader();
+
+            var floatBitmapList = BuildTrafficImageList(data);
+
+            command.Dispose();
+
+            return floatBitmapList;
+        }
+
+        public void InsertTrafficImage(TrafficImage trafficSign)
+        {
+            string sqlInsert = @"insert into traffic_image (sign_count, red_data, green_data, blue_data, location_data, uploaded)
+                                 values (@COUNT, @RED, @GREEN, @BLUE, @LOCATION, now())";
+
+            MySqlParameter[] parameters = {
+                new MySqlParameter("@COUNT", trafficSign.SignCount),
+                new MySqlParameter("@RED", trafficSign.Red.ToByteArray()),
+                new MySqlParameter("@GREEN", trafficSign.Green.ToByteArray()),
+                new MySqlParameter("@BLUE", trafficSign.Blue.ToByteArray()),
+                new MySqlParameter("@LOCATION", trafficSign.Location.ToByteArray())
             };
 
             MySqlCommand command = new MySqlCommand(sqlInsert, _connection);
@@ -240,6 +278,46 @@ namespace NeuronalNetServer.Services
                 }
             }
             return trafficSignList;
+        }
+
+        private List<TrafficImage> BuildTrafficImageList(MySqlDataReader reader)
+        {
+            var trafficImageList = new List<TrafficImage>();
+
+            using (reader)
+            {
+                if (!reader.HasRows)
+                    return trafficImageList;
+
+                while (reader.Read())
+                {
+                    uint signCount = reader.GetUInt32("sign_count");
+
+                    byte[] redData = new byte[BinaryDataLength];
+                    byte[] greenData = new byte[BinaryDataLength];
+                    byte[] blueData = new byte[BinaryDataLength];
+
+                    reader.GetBytes(reader.GetOrdinal("red_data"), 0, redData, 0, BinaryDataLength);
+                    reader.GetBytes(reader.GetOrdinal("green_data"), 0, greenData, 0, BinaryDataLength);
+                    reader.GetBytes(reader.GetOrdinal("blue_data"), 0, blueData, 0, BinaryDataLength);
+
+                    byte[] locationData = new byte[signCount*16];
+
+                    reader.GetBytes(reader.GetOrdinal("location_data"), 0, locationData, 0, (int)signCount*16);
+
+                    var trafficImage = new TrafficImage()
+                    {
+                        SignCount = signCount,
+                        Red = Google.Protobuf.ByteString.CopyFrom(redData),
+                        Green = Google.Protobuf.ByteString.CopyFrom(greenData),
+                        Blue = Google.Protobuf.ByteString.CopyFrom(blueData),
+                        Location = Google.Protobuf.ByteString.CopyFrom(locationData)
+                    };
+
+                    trafficImageList.Add(trafficImage);
+                }
+            }
+            return trafficImageList;
         }
 
         private SignType ConvertStringToSignType(string signType)

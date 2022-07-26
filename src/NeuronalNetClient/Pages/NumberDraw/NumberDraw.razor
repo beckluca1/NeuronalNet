@@ -4,7 +4,7 @@
 
 <body>
 
-<frame @onload='@(() => CallJSFunction("init"))'></frame>
+<frame @onload='@(() => Init())'></frame>
 
 <h1>Number Draw</h1>
 
@@ -15,27 +15,27 @@
 </p>
 
 <button class="btn btn-secondary"
-        @onclick='@(() => CallJSFunction("fillCanvas",0))'>
+        @onclick='@(() => CallJSFunction("uploadImage",0))'>
         Stopschild
 </button>
 <button class="btn btn-secondary"
-        @onclick='@(() => CallJSFunction("fillCanvas",1))'>
+        @onclick='@(() => CallJSFunction("uploadImage",1))'>
         Tempolimit 30
 </button>
 <button class="btn btn-secondary"
-        @onclick='@(() => CallJSFunction("fillCanvas",2))'>
+        @onclick='@(() => CallJSFunction("uploadImage",2))'>
         Tempolimit 50
 </button>
 <button class="btn btn-secondary" 
-        @onclick='@(() => CallJSFunction("fillCanvas",3))'>
+        @onclick='@(() => CallJSFunction("uploadImage",3))'>
         Vorfahrtsstraße
 </button>
 <button class="btn btn-secondary" 
-        @onclick='@(() => CallJSFunction("fillCanvas",4))'>
+        @onclick='@(() => CallJSFunction("uploadImage",4))'>
         Vorfahrt gewähren
 </button>
 <button class="btn btn-secondary" 
-        @onclick='@(() => CallJSFunction("fillCanvas",5))'>
+        @onclick='@(() => CallJSFunction("uploadImage",5))'>
         Anderes Schild
 </button>
 
@@ -43,7 +43,18 @@
 
 <canvas id="image" width="300" height="300"></canvas>
 
-<!--<br><br/>-->
+<br><br/>
+
+
+<button class="btn btn-primary" 
+        @onclick='@(() => CallJSFunction("addSign"))'>
+        Add Sign
+</button>
+
+<button class="btn btn-primary" 
+        @onclick='@(() => CallJSFunction("removeSign"))'>
+        Remove Sign
+</button>
 
 <br><br/>
 
@@ -54,11 +65,6 @@
 <br><br/>
 
 <button class="btn btn-primary" 
-        @onclick='@(() => UpdateJSNet())'>
-        Pull best net
-</button>
-
-<button class="btn btn-primary" 
         @onclick='@(() => GetNetOutput())'>
         Get solution
 </button>
@@ -67,6 +73,11 @@
 
 <button class="btn btn-primary" 
         @onclick="@UploadTrafficSign">
+        Upload data
+</button>
+
+<button class="btn btn-primary" 
+        @onclick="@UploadTrafficImage">
         Upload data
 </button>
 

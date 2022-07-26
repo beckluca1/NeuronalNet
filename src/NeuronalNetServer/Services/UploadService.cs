@@ -75,6 +75,15 @@ namespace NeuronalNetServer.Services
             return Task.FromResult(numberOfSigns);
         }
 
+        public override Task<SuccessReply> SendTrafficImage(TrafficImage request, ServerCallContext context)
+        {
+            _dbService.InsertTrafficImage(request);
+
+            var reply = new SuccessReply() { Success = true };
+
+            return Task.FromResult(reply);
+        }
+
         public override Task<Proto.NeuralNetData> GetNeuralNetData(Null request, ServerCallContext context)
         {
             var neuralNetData = _dbService.GetLatestNeuralNet();

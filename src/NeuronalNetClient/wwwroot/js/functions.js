@@ -1,3 +1,84 @@
+class sign
+{
+    lowerPointX = 0;
+    lowerPointY = 0;
+    upperPointX = 0;
+    upperPointY = 0;
+    lower = true;
+    constructor(lowerPointX,lowerPointY,upperPointX,upperPointY)
+    {
+        this.lowerPointX = lowerPointX;
+        this.owerPointY = lowerPointY;
+        this.upperPointX = upperPointX;
+        this.upperPointY = upperPointY;
+    }
+
+    distance()
+    {
+        let distance1 = Math.pow(this.lowerPointX-MOUSE_CURSOR_POSITION_X,2)+Math.pow(this.lowerPointY-MOUSE_CURSOR_POSITION_Y,2);
+        let distance2 = Math.pow(this.upperPointX-MOUSE_CURSOR_POSITION_X,2)+Math.pow(this.upperPointY-MOUSE_CURSOR_POSITION_Y,2);
+        this.lower = distance1<distance2;
+        return this.lower ? distance1 : distance2;
+    }
+
+    move()
+    {
+        if(this.lower)
+        {
+            this.lowerPointX = Math.min(MOUSE_CURSOR_POSITION_X+MDX,this.upperPointX-20);
+            this.lowerPointY = Math.min(MOUSE_CURSOR_POSITION_Y+MDY,this.upperPointY-20);
+        }
+        else
+        {
+            this.upperPointX = Math.max(MOUSE_CURSOR_POSITION_X+MDX,this.lowerPointX+20);
+            this.upperPointY = Math.max(MOUSE_CURSOR_POSITION_Y+MDY,this.lowerPointY+20);       
+        }
+    }
+
+    draw()
+    {
+        if(this==signRect[currentSign])
+        {
+            ctx.fillStyle = "rgba(80,150,190,1)";
+            ctx.strokeStyle = "rgba(80,150,190,1)";
+        }
+        else if(this==signRect[importantSign])
+        {
+            ctx.fillStyle = "rgba(40,90,110,1)";
+            ctx.strokeStyle = "rgba(40,90,110,1)";
+        }
+        else
+        {
+            ctx.fillStyle = "rgba(0,0,0,1)";
+            ctx.strokeStyle = "rgba(0,0,0,1)";
+        }
+
+        ctx.beginPath()
+        ctx.rect(this.lowerPointX, this.lowerPointY, this.upperPointX-this.lowerPointX, this.upperPointY-this.lowerPointY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(this.upperPointX, this.upperPointY, 10, 0, 2 * Math.PI);
+        ctx.fill();
+    
+        ctx.beginPath();
+        ctx.arc(this.lowerPointX, this.lowerPointY, 10, 0, 2 * Math.PI);
+        ctx.fill();
+    
+        if(this==signRect[currentSign])
+            ctx.fillStyle = "rgba(80,150,190,0.3)";
+        else if(this==signRect[importantSign])
+            ctx.fillStyle = "rgba(40,90,110,0.3)";
+        else
+            ctx.fillStyle = "rgba(0,0,0,0.3)";
+
+        ctx.beginPath()
+        ctx.rect(this.lowerPointX, this.lowerPointY, this.upperPointX-this.lowerPointX, this.upperPointY-this.lowerPointY);
+        ctx.fill();
+
+    }
+}
+
 var canvas;
 var ctx;
 
@@ -7,18 +88,21 @@ var canvasWidth = 420;
 var canvasHeight = 420;
 var extraWidth = 400;
 
-var lowerPointX = 0;
-var lowerPointY = 0;
-var upperPointX = 0;
-var upperPointY = 0;
+var signRect = [];
+var currentSign;
+var importantSign;
 
 var MOUSE_CURSOR_POSITION_X = 0;
 var MOUSE_CURSOR_POSITION_Y = 0;
 
+var MDX = 0;
+var MDY = 0;
+
 var MOUSE_CLICK = false;
 var MOUSE_DOWN = false;
 
-var myData = null;
+var signImage = null;
+var trafficImage = null;
 
 var netValues = [0,0,0,0,0];
 
@@ -27,8 +111,6 @@ function init()
     canvas = document.getElementById('image');
     canvas.width = canvasWidth+extraWidth;
     canvas.height = canvasHeight;
-    upperPointX = canvas.width-extraWidth;
-    upperPointY = canvas.height;
 
     ctx = canvas.getContext('2d');
 
@@ -38,8 +120,6 @@ function init()
     document.addEventListener("mouseup", mouseRelease);
 
     setInterval(intervalCall, 100);
-    setInterval(callNetUpdate, 10000);
-
 }
 
 function getMouseCoords(event) 
@@ -47,19 +127,8 @@ function getMouseCoords(event)
     let xx = event.clientX-canvas.getBoundingClientRect().left;
     let yy = event.clientY-canvas.getBoundingClientRect().top;
 
-    if(xx>=0
-        && xx<=canvas.width-extraWidth
-        && yy>=0
-        && yy<=canvas.height)
-    {
-        MOUSE_CURSOR_POSITION_X = Math.min(Math.max(xx,0),canvas.width-extraWidth);
-        MOUSE_CURSOR_POSITION_Y = Math.min(Math.max(yy,0),canvas.height);
-    }
-    else
-    {
-        MOUSE_CURSOR_POSITION_X = null;
-        MOUSE_CURSOR_POSITION_Y = null;
-    }
+    MOUSE_CURSOR_POSITION_X = Math.min(Math.max(xx,0),canvas.width-extraWidth);
+    MOUSE_CURSOR_POSITION_Y = Math.min(Math.max(yy,0),canvas.height);
 }
   
 function mouseDown(event) 
@@ -72,12 +141,10 @@ function mouseRelease(event)
 {
     MOUSE_DOWN = false;
     MOUSE_CLICK = false;
-  }
+}
 
 function intervalCall()
 {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
     var img = document.getElementById('list');
     img.hidden = true;
 
@@ -86,75 +153,97 @@ function intervalCall()
 
     let factor = Math.min((canvas.width-extraWidth)/img.width,canvas.height/img.height);
 
-    let newImageWidth = upperPointX-lowerPointX;
-    let newImageHeight = upperPointY-lowerPointY;
-    let newFactorX = 46/newImageWidth;
-    let newFactorY = 46/newImageHeight;
-    let newFactorW = 46/newImageWidth*factor;
-    let newFactorH = 46/newImageHeight*factor;
-
-    ctx.drawImage(img, -lowerPointX*newFactorX, -lowerPointY*newFactorY, img.width*newFactorW, img.height*newFactorH);
-
-    myData = ctx.getImageData(0, 0, 46, 46);
-
-    let factorS = Math.floor(canvasHeight/46/4);
-
-    for (var x=0;x<46;x++)
+    if(importantSign!=null)
     {
-        for (var y=0;y<46;y++)
+        let signImageWidth = signRect[importantSign].upperPointX-signRect[importantSign].lowerPointX;
+        let signImageHeight = signRect[importantSign].upperPointY-signRect[importantSign].lowerPointY;
+        let signFactorX = 48/signImageWidth;
+        let signFactorY = 48/signImageHeight;
+        let signFactorW = signFactorX*factor;
+        let signFactorH = signFactorY*factor;
+    
+        ctx.drawImage(img, -signRect[importantSign].lowerPointX*signFactorX, -signRect[importantSign].lowerPointY*signFactorY, img.width*signFactorW, img.height*signFactorH);
+    
+        signImage = ctx.getImageData(0, 0, 48, 48);
+    }
+
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    let trafficImageWidth = canvasWidth;
+    let trafficImageHeight = canvasHeight;
+    let trafficFactorW = 48/trafficImageWidth*factor;
+    let trafficFactorH = 48/trafficImageHeight*factor;
+
+    ctx.drawImage(img, 0, 0, img.width*trafficFactorW, img.height*trafficFactorH);
+
+    trafficImage = ctx.getImageData(0, 0, 48, 48);
+
+    if(importantSign!=null)
+    {
+
+        let factorS = Math.floor(canvasHeight/48/4);
+
+        for (var x=0;x<48;x++)
         {
-            ctx.fillStyle = "rgba("+myData.data[0+x*4+y*4*46]+",0,0,1)";
-            ctx.beginPath()
-            ctx.rect(canvasWidth+20+x*factorS, y*factorS, factorS, factorS);
-            ctx.fill();
-            ctx.fillStyle = "rgba(0,"+myData.data[1+x*4+y*4*46]+",0,1)";
-            ctx.beginPath()
-            ctx.rect(canvasHeight+20+x*factorS, y*factorS+46*factorS, factorS, factorS);
-            ctx.fill();
-            ctx.fillStyle = "rgba(0,0,"+myData.data[2+x*4+y*4*46]+",1)";
-            ctx.beginPath()
-            ctx.rect(canvasWidth+20+x*factorS, y*factorS+92*factorS, factorS, factorS);
-            ctx.fill();
-            ctx.fillStyle = "rgba("+myData.data[0+x*4+y*4*46]+","+myData.data[1+x*4+y*4*46]+","+myData.data[2+x*4+y*4*46]+",1)";
-            ctx.beginPath()
-            ctx.rect(canvasWidth+20+x*factorS, y*factorS+138*factorS, factorS, factorS);
-            ctx.fill();
+            for (var y=0;y<48;y++)
+            {
+                ctx.fillStyle = "rgba("+signImage.data[0+x*4+y*4*48]+",0,0,1)";
+                ctx.beginPath()
+                ctx.rect(canvasWidth+20+x*factorS, y*factorS, factorS, factorS);
+                ctx.fill();
+                ctx.fillStyle = "rgba(0,"+signImage.data[1+x*4+y*4*48]+",0,1)";
+                ctx.beginPath()
+                ctx.rect(canvasHeight+20+x*factorS, y*factorS+48*factorS, factorS, factorS);
+                ctx.fill();
+                ctx.fillStyle = "rgba(0,0,"+signImage.data[2+x*4+y*4*48]+",1)";
+                ctx.beginPath()
+                ctx.rect(canvasWidth+20+x*factorS, y*factorS+96*factorS, factorS, factorS);
+                ctx.fill();
+                ctx.fillStyle = "rgba("+signImage.data[0+x*4+y*4*48]+","+signImage.data[1+x*4+y*4*48]+","+signImage.data[2+x*4+y*4*48]+",1)";
+                ctx.beginPath()
+                ctx.rect(canvasWidth+20+x*factorS, y*factorS+144*factorS, factorS, factorS);
+                ctx.fill();
+            }
         }
     }
 
     ctx.drawImage(img, 0, 0, img.width*factor, img.height*factor);
 
-    if(MOUSE_DOWN&&MOUSE_CURSOR_POSITION_X!=null&&MOUSE_CURSOR_POSITION_Y!=null)
+    if(MOUSE_CLICK&&MOUSE_CURSOR_POSITION_X!=null&&MOUSE_CURSOR_POSITION_Y!=null&&signRect.length>0)
     {
-        let distance1 = Math.pow(lowerPointX-MOUSE_CURSOR_POSITION_X,2)+Math.pow(lowerPointY-MOUSE_CURSOR_POSITION_Y,2)
-        let distance2 = Math.pow(upperPointX-MOUSE_CURSOR_POSITION_X,2)+Math.pow(upperPointY-MOUSE_CURSOR_POSITION_Y,2)
-
-        if(distance1<distance2)
+        var minDistance = signRect[0].distance();
+        var minIndex = 0;
+        for(var i=0;i<signRect.length;i++)
         {
-            lowerPointX = MOUSE_CURSOR_POSITION_X;
-            lowerPointY = MOUSE_CURSOR_POSITION_Y;
+            var distance = signRect[i].distance();
+            minIndex = distance<minDistance ? i : minIndex;
+            minDistance = distance<minDistance ? distance : minDistance;
+        }
+        if(minDistance<200)
+        {
+            currentSign = minIndex;
+            importantSign = currentSign;
+            MDX = (signRect[currentSign].lower ? signRect[currentSign].lowerPointX : signRect[currentSign].upperPointX) - MOUSE_CURSOR_POSITION_X;
+            MDY = (signRect[currentSign].lower ? signRect[currentSign].lowerPointY : signRect[currentSign].upperPointY) - MOUSE_CURSOR_POSITION_Y;
         }
         else
         {
-            upperPointX = MOUSE_CURSOR_POSITION_X;
-            upperPointY = MOUSE_CURSOR_POSITION_Y;            
+            currentSign = null;
+            MDX = 0;
+            MDY = 0;
         }
-
     }
 
-
-    ctx.fillStyle = "rgba(0,0,0,1)";
-    ctx.beginPath();
-    ctx.arc(upperPointX, upperPointY, 10, 0, 2 * Math.PI);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(lowerPointX, lowerPointY, 10, 0, 2 * Math.PI);
-    ctx.fill();
-
-    ctx.beginPath()
-    ctx.rect(lowerPointX, lowerPointY, upperPointX-lowerPointX, upperPointY-lowerPointY);
-    ctx.stroke();
+    if(MOUSE_DOWN&&MOUSE_CURSOR_POSITION_X!=null&&MOUSE_CURSOR_POSITION_Y!=null&&currentSign!=null)
+    {
+        signRect[currentSign].move();
+    }
+    
+    for(var i=0;i<signRect.length;i++)
+    {
+        signRect[i].draw();
+    }
 
     var max = 255*netValues[0];
     var maxIndex = 0;
@@ -190,29 +279,56 @@ function intervalCall()
     ctx.font = "10px Georgia";
     ctx.fillText(text, canvasWidth+155, 12+maxIndex*20);
 
+    MOUSE_CLICK = false;
+}
+
+function addSign()
+{
+    signRect.push(new sign(0,0,canvas.width-extraWidth,canvas.height));
+    currentSign = signRect.length-1;
+    importantSign = currentSign;
+    signRect[currentSign].selected = true;
+}
+
+function removeSign()
+{
+    if(signRect.length>0&&importantSign!=null)
+    {
+        for(var i=importantSign;i<signRect.length-1;i++)
+        {
+            signRect[i] = signRect[i+1];
+        }
+        signRect.pop();
+        if(signRect.length>0)
+            importantSign = signRect.length-1;
+        else
+            importantSign = null;
+        currentSign = null;
+    }
+
 }
 
 function callNetUpdate()
 {
-    if(myData==null)
+    if(signImage==null)
         return;
 
-    let size = 46;
+    let size = 48;
 
-    var allData = [];
-    allData.push(size);
+    var signImageData = [];
+    signImageData.push(size);
 
-    for (var y=0;y<46;y++)
+    for (var y=0;y<48;y++)
     {
-        for (var x=0;x<46;x++)
+        for (var x=0;x<48;x++)
         {
-            allData.push(myData.data[0+x*4+y*4*46]);
-            allData.push(myData.data[1+x*4+y*4*46]);
-            allData.push(myData.data[2+x*4+y*4*46]);
+            signImageData.push(signImage.data[0+x*4+y*4*48]);
+            signImageData.push(signImage.data[1+x*4+y*4*48]);
+            signImageData.push(signImage.data[2+x*4+y*4*48]);
         }
     }
 
-    DotNet.invokeMethod('NeuronalNetClient', 'GetNetData',allData); 
+    DotNet.invokeMethod('NeuronalNetClient', 'UpdateNetImage',signImageData); 
 }
 
 function updateNet(values)
@@ -220,25 +336,48 @@ function updateNet(values)
     netValues = values;
 }
 
-function fillCanvas(number)
+function uploadImage(number)
 {
-    let size = 46;
+    let size = 48;
 
-    var allData = [];
-    allData.push(size);
-    allData.push(number);
+    var signImageData = [];
+    signImageData.push(size);
+    signImageData.push(number);
 
-    for (var x=0;x<46;x++)
+    var trafficImageData = [];
+    trafficImageData.push(size);
+    trafficImageData.push(signRect.length);
+
+    for (var x=0;x<48;x++)
     {
-        for (var y=0;y<46;y++)
+        for (var y=0;y<48;y++)
         {
-            allData.push(myData.data[0+x*4+y*4*46]);
-            allData.push(myData.data[1+x*4+y*4*46]);
-            allData.push(myData.data[2+x*4+y*4*46]);
+            signImageData.push(signImage.data[0+x*4+y*4*48]);
+            signImageData.push(signImage.data[1+x*4+y*4*48]);
+            signImageData.push(signImage.data[2+x*4+y*4*48]);
+
+            trafficImageData.push(trafficImage.data[0+x*4+y*4*48]);
+            trafficImageData.push(trafficImage.data[1+x*4+y*4*48]);
+            trafficImageData.push(trafficImage.data[2+x*4+y*4*48]);
         }
     }
 
-    DotNet.invokeMethod('NeuronalNetClient', 'GetImageData', allData); 
+    for (var i=0;i<signRect.length;i++)
+    {
+        let x = Math.floor((signRect[i].lowerPointX+signRect[i].upperPointX)/2/canvasWidth*255);
+        let y = Math.floor((signRect[i].lowerPointY+signRect[i].upperPointY)/2/canvasHeight*255);
+        let w = Math.floor((signRect[i].upperPointX-signRect[i].lowerPointX)/canvasWidth*255);
+        let h = Math.floor((signRect[i].upperPointY-signRect[i].lowerPointY)/canvasHeight*255);
+
+        trafficImageData.push(x);
+        trafficImageData.push(y);
+        trafficImageData.push(w);
+        trafficImageData.push(h);
+    }
+
+    DotNet.invokeMethod('NeuronalNetClient', 'UploadSignImageData', signImageData); 
+    DotNet.invokeMethod('NeuronalNetClient', 'UploadTrafficImageData', trafficImageData); 
+
 }
 
 function dateiauswahl(evt) {
@@ -257,6 +396,9 @@ function dateiauswahl(evt) {
             vorschau.id = 'list';
             document.getElementById('list').replaceWith(vorschau);
             replacedImage = false;
+            signRect = [];
+            currentSign = null;
+            importantSign = null;
         };
         })(f);
         // Bilder als Data URL auslesen.

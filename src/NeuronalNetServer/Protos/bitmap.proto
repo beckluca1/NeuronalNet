@@ -10,6 +10,8 @@ service Uploader {
   rpc SendTrafficSign (TrafficSign) returns (SuccessReply);
   rpc SendMultipleTrafficSigns (stream TrafficSign) returns (SuccessReply);
 
+  rpc SendTrafficImage (TrafficImage) returns (SuccessReply);
+
   rpc GetSignTypeData (Null) returns (NumberOfSigns);
 
   rpc GetNeuralNetData (Null) returns (NeuralNetData);
@@ -25,6 +27,14 @@ message TrafficSign {
   bytes red = 2;
   bytes green = 3;
   bytes blue = 4;
+}
+
+message TrafficImage {
+  uint32 sign_count = 1;
+  bytes red = 2;
+  bytes green = 3;
+  bytes blue = 4;
+  bytes location = 5;
 }
 
 message NumberOfSigns {
