@@ -2,10 +2,10 @@ namespace NeuralNet
 {
     public class Rectangle
     {
-        float x = 0;
-        float y = 0;
-        float width = 0;
-        float height = 0;
+        public float x = 0;
+        public float y = 0;
+        public float width = 0;
+        public float height = 0;
 
         float minX = 0;
         float minY = 0;
@@ -29,89 +29,96 @@ namespace NeuralNet
             area = width*height;
         }
 
-        public static float Intersection(Rectangle rect1, Rectangle rect2)
+        public static List<Rectangle> GetAllRectangles()
         {
-            float intersectionX = Math.Max(rect1.minX,rect2.minX) - Math.Min(rect1.maxX,rect2.maxX);
-            float intersectionY = Math.Max(rect1.minY,rect2.minY) - Math.Min(rect1.maxY,rect2.maxY);
+            List<Rectangle> allRectangles = new List<Rectangle>();
+
+            int imageSize = 48;
+            int[] rectSizes = new int[]{6,10,16,22,28,36};
+            float[] ratios = new float[]{1.2f,1,0.8f};
+
+            for(int x=0;x<imageSize;x+=8)
+            {
+                for(int y=0;y<imageSize;y+=8)
+                {
+                    for(int sizeIndex=0;sizeIndex<rectSizes.Length;sizeIndex++)
+                    {
+                        if(x-rectSizes[sizeIndex]/2<0||x+rectSizes[sizeIndex]/2>=48||y-rectSizes[sizeIndex]/2<0||y+rectSizes[sizeIndex]/2>=48)
+                            continue;
+
+                        allRectangles.Add(new Rectangle(((float)x)/48f,((float)y)/48f,((float)rectSizes[sizeIndex])/48f,((float)rectSizes[sizeIndex])/48f));
+                    }
+                }
+            }
+            Console.WriteLine(allRectangles.Count);
+
+            return allRectangles;
+        }   
+
+        public float Intersection(Rectangle rect)
+        {
+            float intersectionX = Math.Min(maxX,rect.maxX) - Math.Max(minX,rect.minX);
+            float intersectionY = Math.Min(maxY,rect.maxY) - Math.Max(minY,rect.minY);
 
             if(intersectionX<=0||intersectionY<=0)
-                return (intersectionX)*(intersectionY);
+                return 0;
             
             return intersectionX*intersectionY;
         }
 
-        public static float Union(Rectangle rect1, Rectangle rect2)
+        public float Bounding(Rectangle rect)
         {
-            return rect1.area + rect2.area - Intersection(rect1,rect2);
+            float boundingX = (Math.Max(maxX,rect.maxX) - Math.Min(minX,rect.minX));
+            float boundingY = (Math.Max(maxY,rect.maxY) - Math.Min(minY,rect.minY));
+            
+            return boundingX * boundingY;
         }
 
-        public static float IOU(Rectangle rect1, Rectangle rect2)
+        public float Union(Rectangle rect)
         {
-            float intersection = Intersection(rect1,rect2);
-            return intersection/(rect1.area + rect2.area - intersection);
+            return area + rect.area - Intersection(rect);
         }
 
-        public static float GIOU(Rectangle rect1, Rectangle rect2)
+        public float GIOU(Rectangle rect)
         {
-            float intersection = Intersection(rect1,rect2);
-            float union = rect1.area + rect2.area - intersection;
-            float boundingX = (Math.Max(rect1.maxX,rect2.maxX)-Math.Min(rect1.minX,rect2.minX));
-            float boundingY = (Math.Max(rect1.maxY,rect2.maxY)-Math.Min(rect1.minY,rect2.minY));
-            float bouningArea = boundingX*boundingY;
-            return intersection/union - (bouningArea-union)/bouningArea;
+            float intersection = Intersection(rect);
+            float union = Union(rect);
+            float bounding = Bounding(rect);
+
+            float giou = intersection/union;// - (bounding-union)/bounding;
+
+            return giou;
         }
 
-        public static List<Rectangle> SortForDistance(List<Rectangle> inNetRectangles, List<Rectangle> inRealRectangles)
+        public int GetBestRectangle(List<Rectangle> inRectangleList)
         {
-            List<Rectangle> netRectangles = new List<Rectangle>();
-            List<Rectangle> realRectangles = inRealRectangles;
-
-            List<Rectangle> newOrderRectangles= new List<Rectangle>();
-
-            List<int> indexes = new List<int>();
-            for(int i=0;i<inNetRectangles.Count;i++)
+            float maxDistance = GIOU(inRectangleList[0]);
+            int maxIndex = 0;
+            for(int i=0;i<inRectangleList.Count;i++)
             {
-                indexes.Add(0);
-                netRectangles.Add(inNetRectangles[i]);
-
+                float distance = GIOU(inRectangleList[i]);
+                maxIndex = distance > maxDistance ? i : maxIndex;
+                maxDistance = distance > maxDistance ? distance : maxDistance;
             }
-
-            for(int i=0;i<netRectangles.Count;i++)
-            {
-                float minDistance = GIOU(netRectangles[0],realRectangles[0]);
-                int[] index = new int[]{0,0};
-                for(int j=0;j<netRectangles.Count;j++)
-                {
-                    for(int k=0;k<realRectangles.Count;k++)
-                    {
-                        float distance = GIOU(netRectangles[j],realRectangles[k]);
-                        index = distance < minDistance ? new int[]{j,k} : index;
-                        minDistance = distance < minDistance ? distance : minDistance;
-                    }
-                }
-                indexes[index[0]] = index[1];
-                netRectangles.RemoveRange(index[0],1);
-                newOrderRectangles.Add(inNetRectangles[index[0]]);
-                realRectangles.RemoveRange(index[1],1);
-            }
-            return newOrderRectangles;
+            return maxIndex;
         }
     }
 
-    public class ProposalNeuralNet
+    public class ProposalNeuralNet : ConvolutionalNet
     {
-        public List<List<NeuralMap>> neuralMaps = new List<List<NeuralMap>>(8);
-
-        public float cost = 0;
-        public int correct = 0;
+        public List<Rectangle> allRectangles;
 
         public ProposalNeuralNet()
         {
+            neuralMaps = new List<List<NeuralMap>>();
+
+            allRectangles = Rectangle.GetAllRectangles();
+
             int layerCount = 9;
-            int[] layerSizes = {3,10,10,15,15,20,20,1};
-            int[] mapSizes = {48,44,22,20,10,8,4,48*48*9};
-            NeuronType[] neuronTypes = {NeuronType.Input,NeuronType.Convolutional,NeuronType.Pooling,NeuronType.Convolutional,NeuronType.Pooling,NeuronType.Convolutional,NeuronType.Pooling,NeuronType.Connected};
-            int[] filterSizes = {1,3,2,3,2,3,2,1,1};
+            int[] layerSizes = {3,10,10,15,15,20,20,1,1};
+            int[] mapSizes = {48,46,23,20,10,8,4,250,allRectangles.Count};
+            NeuronType[] neuronTypes = {NeuronType.Input,NeuronType.Convolutional,NeuronType.Pooling,NeuronType.Convolutional,NeuronType.Pooling,NeuronType.Convolutional,NeuronType.Pooling,NeuronType.Connected,NeuronType.Connected};
+            int[] filterSizes = {1,3,2,4,2,3,2,1,1};
 
             for(int i=0;i<layerCount;i++)
             {
@@ -124,7 +131,10 @@ namespace NeuralNet
                     else if(type==NeuronType.Convolutional)
                         neuralMaps[i].Add(new ConvolutionalMap(filterSizes[i],neuralMaps[i-1]));
                     else if(type==NeuronType.Pooling)
+                    {
+                        Console.WriteLine(neuralMaps[i-1]);
                         neuralMaps[i].Add(new PoolingMap(filterSizes[i],neuralMaps[i-1][j]));
+                    }
                     else if(type==NeuronType.Connected)
                         neuralMaps[i].Add(new ConnectedMap(mapSizes[i],neuralMaps[i-1]));
                 }
@@ -134,6 +144,10 @@ namespace NeuralNet
 
         public ProposalNeuralNet(int layerCount, int[] layerSizes, int[] mapSizes, NeuronType[] neuronTypes, int[] filterSizes)
         {
+            neuralMaps = new List<List<NeuralMap>>();
+
+            allRectangles = Rectangle.GetAllRectangles();
+
             for(int i=0;i<layerCount;i++)
             {
                 NeuronType type = neuronTypes[i];
@@ -153,91 +167,20 @@ namespace NeuralNet
             }
         }
 
-        public void SetInput(byte[] inputR, byte[] inputG, byte[] inputB)
+        public Rectangle presesntBest()
         {
-            //Console.WriteLine("Hello, World");
+            List<float> output = GetOutput();
 
-            int inputSize = 48*48;
-
-            List<float> dataR = new List<float>();
-            List<float> dataG = new List<float>();
-            List<float> dataB = new List<float>();
-
-            for(int i=0;i<inputSize;i++)
-            {
-                dataR.Add((((float)inputR[i])/255.0f));
-                dataG.Add((((float)inputG[i])/255.0f));
-                dataB.Add((((float)inputB[i])/255.0f));
-            }
-
-            neuralMaps[0][0].SetValues(dataR);
-            neuralMaps[0][1].SetValues(dataG);
-            neuralMaps[0][2].SetValues(dataB);
-        }
-
-        public List<float> GetOutput()
-        {
-            return neuralMaps[neuralMaps.Count-1][0].GetValues();
-        }
-
-        public void CalculateCost(List<float> realValues)
-        {
-            List<float> values = GetOutput();
-            int maxIndex = neuralMaps.Count-1;
-            for(int i=0;i<values.Count;i++)
-            {
-                neuralMaps[maxIndex][0].dValues[i] = 2*(neuralMaps[maxIndex][0].values[i]-realValues[i])*Global.DSigmoid(neuralMaps[maxIndex][0].activations[i]);
-                cost += Global.Pow(values[i]-realValues[i],2);
-            }
-        }
-
-        public bool Correct(int number)
-        {
+            float maxCert = output[0];
             int maxIndex = 0;
-            List<float> values = GetOutput();
-            float max = values[0];
-            for(int i=0;i<values.Count;i++)
+            for(int i=0;i<output.Count;i++)
             {
-                //Console.Write(values[i]+", ");
-                maxIndex = (values[i]) > max ? i : maxIndex;
-                max = (values[i]) > max ? (values[i]) : max;
+                maxIndex = output[i]>maxCert ? i : maxIndex;
+                maxCert = output[i]>maxCert ? output[i] : maxCert;
             }
-            //Console.WriteLine("-> "+maxIndex+" ("+number+")");
-            correct += number==maxIndex ? 1 : 0;
-            return number==maxIndex;
-        }
 
-        public void Update()
-        {
-            for(int i=0;i<neuralMaps.Count;i++)
-            {
-                for(int l=0;l<neuralMaps[i].Count;l++)
-                {
-                    neuralMaps[i][l].Update();
-                }
-            }
-        }
-
-        public void CalculateChanges()
-        {
-            for(int i=neuralMaps.Count-1;i>=0;i--)
-            {
-                for(int l=0;l<neuralMaps[i].Count;l++)
-                {
-                    neuralMaps[i][l].CalculateChanges();
-                }
-            }
-        }
-
-        public void Improve()
-        {
-            for(int i=0;i<neuralMaps.Count;i++)
-            {
-                for(int l=0;l<neuralMaps[i].Count;l++)
-                {
-                    neuralMaps[i][l].Improve();
-                }
-            }
+            Rectangle bestRectangle = allRectangles[maxIndex];
+            return bestRectangle;
         }
     }
 }

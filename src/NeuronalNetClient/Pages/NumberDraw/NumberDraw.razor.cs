@@ -12,7 +12,9 @@ namespace NeuronalNetClient.Pages.NumberDraw
 {
     public partial class NumberDraw
     {
-        private static ConvolutionalNet currentNet = new ConvolutionalNet();
+        private static ConvolutionalNet currentCNN = new ConvolutionalNet();
+        private static ProposalNeuralNet currentRPN = new ProposalNeuralNet();
+
         private static TrafficSign toBeUploadedSign = new TrafficSign();
         private static TrafficImage toBeUploadedImage = new TrafficImage();
 
@@ -35,20 +37,23 @@ namespace NeuronalNetClient.Pages.NumberDraw
 
         #region Methods
 
-        private async Task UploadTrafficSign()
+        private async Task Upload()
         {
-            var trafficSign = GenerateRandomTraffigSign();
             await GrpcUploader.SendTrafficSignAsync(toBeUploadedSign);
-        }
 
-        private async Task UploadTrafficImage()
-        {
             await GrpcUploader.SendTrafficImageAsync(toBeUploadedImage);
         }
 
-        private async Task<NeuralNetData> GetLatestNeuralNet()
+        private async Task<NeuralNetData> GetLatestCNN()
         {
-            NeuralNetData latestNeuralNet = await GrpcUploader.GetNeuralNetDataAsync(new Null());
+            NeuralNetData latestNeuralNet = await GrpcUploader.GetCNNDataAsync(new Null());
+
+            return latestNeuralNet;
+        }
+
+        private async Task<NeuralNetData> GetLatestRPN()
+        {
+            NeuralNetData latestNeuralNet = await GrpcUploader.GetRPNDataAsync(new Null());
 
             return latestNeuralNet;
         }
@@ -164,7 +169,7 @@ namespace NeuronalNetClient.Pages.NumberDraw
         }
 
         [JSInvokable]
-        public static void UpdateNetImage(int[] data)
+        public static void UpdateCNNImage(int[] data)
         {
             List<byte> redData = new List<byte>();
             List<byte> greenData = new List<byte>();
@@ -178,8 +183,27 @@ namespace NeuronalNetClient.Pages.NumberDraw
                 blueData.Add((byte)data[i*3+3]);
             }
 
-            currentNet.SetInput(redData.ToArray(), greenData.ToArray(), blueData.ToArray());
-            currentNet.Update();
+            currentCNN.SetInput(redData.ToArray(), greenData.ToArray(), blueData.ToArray());
+            currentCNN.Update();
+        }
+
+        [JSInvokable]
+        public static void UpdateRPNImage(int[] data)
+        {
+            List<byte> redData = new List<byte>();
+            List<byte> greenData = new List<byte>();
+            List<byte> blueData = new List<byte>();
+
+            Console.WriteLine("Got Data"+data[0]);
+            for(int i=0;i<data[0]*data[0];i++) 
+            {
+                redData.Add((byte)data[i*3+1]);
+                greenData.Add((byte)data[i*3+2]);
+                blueData.Add((byte)data[i*3+3]);
+            }
+
+            currentRPN.SetInput(redData.ToArray(), greenData.ToArray(), blueData.ToArray());
+            currentRPN.Update();
         }
 
         public async void Init()
@@ -190,15 +214,22 @@ namespace NeuronalNetClient.Pages.NumberDraw
 
         public async void GetBestNet()
         {
-            currentNet = NetSaveStateHandler.readFromSaveState((await GetLatestNeuralNet()).NetData.ToByteArray());
+            currentCNN = NetSaveStateHandler.readFromSaveStateCNN((await GetLatestCNN()).NetData.ToByteArray());
+            currentRPN = NetSaveStateHandler.readFromSaveStateRPN((await GetLatestRPN()).NetData.ToByteArray());
         }
         
 
         public async void GetNetOutput()
         {
-            await CallJSFunction("callNetUpdate");
+            await CallJSFunction("callCNNUpdate");
+            await CallJSFunction("callRPNUpdate");
 
-            await CallJSFunction("updateNet",currentNet.GetOutput().ToArray());
+            await CallJSFunction("updateCNN",currentCNN.GetOutput().ToArray());
+
+            Rectangle bestRectangle = currentRPN.presesntBest();
+            float[] output = new float[]{bestRectangle.x-bestRectangle.width/2,bestRectangle.y-bestRectangle.height/2,bestRectangle.x+bestRectangle.width/2,bestRectangle.y+bestRectangle.height/2};
+            await CallJSFunction("updateRPN",output);
+
         }
 
         #endregion

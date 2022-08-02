@@ -27,7 +27,7 @@ namespace NeuronalNetServer.Services
             OpenConnection(connectionString);
         }
 
-        public void GetNeuralNet(int identifier)
+        public NeuralNetData GetNeuralNet(int identifier)
         {
             string sqlSelect = "select * from neural_net where id = @IDENTIFIER";
 
@@ -39,16 +39,18 @@ namespace NeuronalNetServer.Services
             command.Parameters.AddRange(parameters);
             command.Prepare();
 
-            var data = command.ExecuteReader();
+            var dataReader = command.ExecuteReader();
 
-            FillNetSaveStateHandler(data);
+            var netData = GetSingleNetData(dataReader);
 
             command.Dispose();
+
+            return netData;
         }
 
-        public NeuralNetData GetLatestNeuralNet()
+        public NeuralNetData GetLatestCNN()
         {
-            string sqlSelect = @"select net_data, net_size, rating from neural_net
+            string sqlSelect = @"select net_data, net_size, rating from neural_net where net_type = 'CNN'
                                  order by uploaded desc limit 1";
 
             MySqlCommand command = new MySqlCommand(sqlSelect, _connection);
@@ -56,18 +58,59 @@ namespace NeuronalNetServer.Services
 
             var netData = GetSingleNetData(dataReader);
 
+            command.Dispose();
+
             return netData;
         }
 
-        public void InsertNeuralNet(ConvolutionalNet neuralNet, int rating)
+        public NeuralNetData GetLatestRPN()
         {
-            string sqlInsert = @"insert into neural_net (net_data, net_size, rating, uploaded)
-                                 values (@NET_DATA, @NET_SIZE, @RATING, now())";
+            string sqlSelect = @"select net_data, net_size, rating from neural_net where net_type = 'RPN'
+                                 order by uploaded desc limit 1";
+
+            MySqlCommand command = new MySqlCommand(sqlSelect, _connection);
+            var dataReader = command.ExecuteReader();
+
+            var netData = GetSingleNetData(dataReader);
+
+            command.Dispose();
+
+            return netData;
+        }
+
+        public void InsertCNN(ConvolutionalNet neuralNet, int rating)
+        {
+            string sqlInsert = @"insert into neural_net (net_data, net_type, net_size, rating, uploaded)
+                                 values (@NET_DATA, @NET_TYPE, @NET_SIZE, @RATING, now())";
 
             byte[] netByteData = NetSaveStateHandler.saveFromNet(neuralNet);
 
             MySqlParameter[] parameters = {
                 new MySqlParameter("@NET_DATA", netByteData),
+                new MySqlParameter("@NET_TYPE", "CNN"),
+                new MySqlParameter("@NET_SIZE", netByteData.Length),
+                new MySqlParameter("@RATING", rating)
+            };
+
+            MySqlCommand command = new MySqlCommand(sqlInsert, _connection);
+            command.Parameters.AddRange(parameters);
+            command.Prepare();
+
+            command.ExecuteNonQuery();
+
+            command.Dispose();
+        }
+
+        public void InsertRPN(ConvolutionalNet neuralNet, int rating)
+        {
+            string sqlInsert = @"insert into neural_net (net_data, net_type, net_size, rating, uploaded)
+                                 values (@NET_DATA, @NET_TYPE, @NET_SIZE, @RATING, now())";
+
+            byte[] netByteData = NetSaveStateHandler.saveFromNet(neuralNet);
+
+            MySqlParameter[] parameters = {
+                new MySqlParameter("@NET_DATA", netByteData),
+                new MySqlParameter("@NET_TYPE", "RPN"),
                 new MySqlParameter("@NET_SIZE", netByteData.Length),
                 new MySqlParameter("@RATING", rating)
             };
@@ -98,7 +141,7 @@ namespace NeuronalNetServer.Services
         }
 
         public void InsertTrafficImage(TrafficImage trafficSign)
-        {
+        { 
             string sqlInsert = @"insert into traffic_image (sign_count, red_data, green_data, blue_data, location_data, uploaded)
                                  values (@COUNT, @RED, @GREEN, @BLUE, @LOCATION, now())";
 
@@ -195,25 +238,6 @@ namespace NeuronalNetServer.Services
         {
             _connection = new MySqlConnection(connectionString);
             _connection.Open();
-        }
-
-        private void FillNetSaveStateHandler(MySqlDataReader reader)
-        {
-            using (reader)
-            {
-                if (!reader.HasRows)
-                    return;
-
-                while (reader.Read())
-                {
-                    uint size = reader.GetUInt32(reader.GetOrdinal("net_size"));
-                    byte[] netData = new byte[size];
-
-                    reader.GetBytes(reader.GetOrdinal("net_data"), 0, netData, 0, (int)size);
-
-                    NetSaveStateHandler.DataList = Global.byteToFloat(netData).ToList<float>();
-                }
-            }
         }
 
         private NeuralNetData GetSingleNetData(MySqlDataReader reader)
@@ -364,17 +388,17 @@ namespace NeuronalNetServer.Services
             int stop = 0;
             numberOfSignsDict.TryGetValue(SignType.Stop.ToString(), out stop);
 
-            int thirtySpeedLimit = 0;
-            numberOfSignsDict.TryGetValue(SignType.GiveWay.ToString(), out thirtySpeedLimit);
-
-            int fiftySpeedLimit = 0;
-            numberOfSignsDict.TryGetValue(SignType.PriorityRoad.ToString(), out fiftySpeedLimit);
+            int giveWay = 0;
+            numberOfSignsDict.TryGetValue(SignType.GiveWay.ToString(), out giveWay);
 
             int priorityRoad = 0;
-            numberOfSignsDict.TryGetValue(SignType.ThirtySpeedLimit.ToString(), out priorityRoad);
+            numberOfSignsDict.TryGetValue(SignType.PriorityRoad.ToString(), out priorityRoad);
 
-            int giveWay = 0;
-            numberOfSignsDict.TryGetValue(SignType.FiftySpeedLimit.ToString(), out giveWay);
+            int thirtySpeedLimit = 0;
+            numberOfSignsDict.TryGetValue(SignType.ThirtySpeedLimit.ToString(), out thirtySpeedLimit);
+
+            int fiftySpeedLimit = 0;
+            numberOfSignsDict.TryGetValue(SignType.FiftySpeedLimit.ToString(), out fiftySpeedLimit);
 
             int unclassified = 0;
             numberOfSignsDict.TryGetValue(SignType.Unclassified.ToString(), out unclassified);

@@ -14,7 +14,8 @@ service Uploader {
 
   rpc GetSignTypeData (Null) returns (NumberOfSigns);
 
-  rpc GetNeuralNetData (Null) returns (NeuralNetData);
+  rpc GetCNNData (Null) returns (NeuralNetData);
+  rpc GetRPNData (Null) returns (NeuralNetData);
 }
 
 message BitmapData {
@@ -64,4 +65,9 @@ enum SignType {
   PriorityRoad = 3;
   GiveWay = 4;
   Unclassified = 5;
+}
+
+enum NetType {
+  CNN = 0;
+  RPN = 1;
 }

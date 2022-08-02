@@ -2,17 +2,17 @@ namespace NeuralNet
 {
     public static class NetSaveStateHandler
     {
-        static int layerCount = 0;
-        static List<int> layerSizes = new List<int>();
-        static List<int> mapSizes = new List<int>();
-        static List<int> previousMapCount = new List<int>();
-        static List<int> info = new List<int>();
-        static List<NeuronType> neuronTypes = new List<NeuronType>();
-
-        public static List<float> DataList = new List<float>();
-
         public static byte[] saveFromNet(ConvolutionalNet net)
         {
+            int layerCount = 0;
+            List<int> layerSizes = new List<int>();
+            List<int> mapSizes = new List<int>();
+            List<int> previousMapCount = new List<int>();
+            List<int> info = new List<int>();
+            List<NeuronType> neuronTypes = new List<NeuronType>();
+
+            List<float> DataList = new List<float>();
+
             DataList = new List<float>();
             layerCount = net.neuralMaps.Count;
             DataList.Add(layerCount);
@@ -74,8 +74,15 @@ namespace NeuralNet
             return dataListArray;
         }
 
-        public static ConvolutionalNet readFromSaveState(byte[] inDataByteList)
+       public static ConvolutionalNet readFromSaveStateCNN(byte[] inDataByteList)
         {
+            int layerCount = 0;
+            List<int> layerSizes = new List<int>();
+            List<int> mapSizes = new List<int>();
+            List<int> previousMapCount = new List<int>();
+            List<int> info = new List<int>();
+            List<NeuronType> neuronTypes = new List<NeuronType>();
+
             List<float> DataList = Global.byteToFloat(inDataByteList);
             layerCount = (int)DataList[0];
             DataList.RemoveRange(0,1);
@@ -133,5 +140,72 @@ namespace NeuralNet
             }            
             return net;
         }
-    }
+
+        public static ProposalNeuralNet readFromSaveStateRPN(byte[] inDataByteList)
+        {
+            int layerCount = 0;
+            List<int> layerSizes = new List<int>();
+            List<int> mapSizes = new List<int>();
+            List<int> previousMapCount = new List<int>();
+            List<int> info = new List<int>();
+            List<NeuronType> neuronTypes = new List<NeuronType>();
+
+            List<float> DataList = Global.byteToFloat(inDataByteList);
+            layerCount = (int)DataList[0];
+            DataList.RemoveRange(0,1);
+            for(int i=0;i<layerCount;i++)
+            {
+                layerSizes.Add((int)DataList[0]);
+                mapSizes.Add((int)DataList[1]);
+                previousMapCount.Add((int)DataList[2]);
+                neuronTypes.Add((NeuronType)DataList[3]);
+                if(neuronTypes[i]==NeuronType.Input)
+                    info.Add((int)DataList[4]);
+                else if(neuronTypes[i]==NeuronType.Convolutional)
+                    info.Add((int)DataList[4]);
+                else if(neuronTypes[i]==NeuronType.Pooling)
+                    info.Add((int)DataList[4]);
+                else
+                    info.Add((int)DataList[4]);
+   
+                DataList.RemoveRange(0,5);
+            }
+            ProposalNeuralNet net = new ProposalNeuralNet(layerCount, layerSizes.ToArray(), mapSizes.ToArray(), neuronTypes.ToArray(), info.ToArray());
+            
+            for(int i=0;i<layerCount;i++)
+            {
+                if(neuronTypes[i]==NeuronType.Convolutional)
+                {
+                    for(int j=0;j<layerSizes[i];j++)
+                    {
+                        for(int k=0;k<previousMapCount[i];k++)
+                        {
+                            for(int l=0;l<info[i]*info[i];l++)
+                            {
+                                ((ConvolutionalMap)net.neuralMaps[i][j]).kernels[k].weights[l] = DataList[0];
+                                DataList.RemoveRange(0,1);
+                            }
+                        }
+                    }
+                }
+                else if(neuronTypes[i]==NeuronType.Connected)
+                {
+                    for(int j=0;j<layerSizes[i];j++)
+                    {
+                        for(int k=0;k<mapSizes[i];k++)
+                        {
+                            ((ConnectedMap)net.neuralMaps[i][j]).bias[k] = DataList[0];
+                            DataList.RemoveRange(0,1);
+                        }
+                        for(int k=0;k<mapSizes[i]*previousMapCount[i]*info[i];k++)
+                        {
+                            ((ConnectedMap)net.neuralMaps[i][j]).weights[k] = DataList[0];
+                            DataList.RemoveRange(0,1);
+                        }
+                    }
+                }
+            }            
+            return net;
+        }
+    } 
 }

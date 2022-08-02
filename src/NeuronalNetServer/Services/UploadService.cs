@@ -84,12 +84,20 @@ namespace NeuronalNetServer.Services
             return Task.FromResult(reply);
         }
 
-        public override Task<Proto.NeuralNetData> GetNeuralNetData(Null request, ServerCallContext context)
+ 
+        public override Task<Proto.NeuralNetData> GetCNNData(Null request, ServerCallContext context)
         {
-            var neuralNetData = _dbService.GetLatestNeuralNet();
+            var neuralNetData = _dbService.GetLatestCNN();
 
             return Task.FromResult(neuralNetData);
         }
+        public override Task<Proto.NeuralNetData> GetRPNData(Null request, ServerCallContext context)
+        {
+            var neuralNetData = _dbService.GetLatestRPN();
+
+            return Task.FromResult(neuralNetData);
+        }
+        
         private void InitiliazeServices()
         {
             _dbService.Initialize(_credentials!.DbConnectionString!);

@@ -9,7 +9,8 @@ namespace NeuronalNetServer.Services
         #region Fields
 
         private Credentials _credentials = default!;
-        private ConvolutionalNet _net;
+        private ConvolutionalNet _netCNN;
+        private ProposalNeuralNet _netRPN;
         private readonly DatabaseService _dbService;
 
         public float cost = 0;
@@ -26,71 +27,138 @@ namespace NeuronalNetServer.Services
             _dbService = new DatabaseService();
             _dbService.Initialize(_credentials.DbConnectionString!);
 
-            _net = new ConvolutionalNet();
+            _netCNN = new ConvolutionalNet();
+            _netRPN = new ProposalNeuralNet();
         }
 
         #endregion
 
         #region Methods
 
-        public TrafficSign? LoadImage(int number)
+        public TrafficSign? LoadSignImage(int number)
         {
             SignType type = (SignType)number;
 
             List<TrafficSign> signs = _dbService.GetTrafficSignType(type);
             if(signs.Count==0)
             {
-                Console.WriteLine("No net exisiting");
+                Console.WriteLine("No sign exisiting");
                 return null;
             }
             int randomIndex = new Random().Next() % signs.Count;
 
+            if(number==2&&randomIndex==8)
+            {
+                byte[] arra = signs[randomIndex].Red.ToByteArray();
+                for(int i=0;i<10;i++)
+                    Console.WriteLine(arra[i]);
+            }  
+
             return signs[randomIndex];
+        }
+
+        public TrafficImage? LoadTrafficImage()
+        {
+            List<TrafficImage> images = _dbService.GetAllTrafficImages();
+            if(images.Count==0)
+            {
+                Console.WriteLine("No image exisiting");
+                return null;
+            }
+            int randomIndex = new Random().Next() % images.Count;
+
+            return images[randomIndex];
         }
 
         public void InitNet()
         {   
-            NeuralNetData netData = _dbService.GetLatestNeuralNet();
-            if(netData.Rating==0)
-                return;
-            _net = NetSaveStateHandler.readFromSaveState(_dbService.GetLatestNeuralNet().NetData.ToByteArray());
+            NeuralNetData cnnData = _dbService.GetLatestCNN();
+            if(cnnData.NetData.ToByteArray().Length!=0)
+                _netCNN = NetSaveStateHandler.readFromSaveStateCNN(cnnData.NetData.ToByteArray());
 
+            NeuralNetData rpnData = _dbService.GetLatestRPN();
+            if(rpnData.NetData.ToByteArray().Length!=0)
+                _netRPN = NetSaveStateHandler.readFromSaveStateRPN(rpnData.NetData.ToByteArray());
         }
 
-        public void Calculate(int number)
+        public void CalculateCNN(int number)
         {
-            TrafficSign? loadedSign = LoadImage(number);
+            TrafficSign? loadedSign = LoadSignImage(number);
             if(loadedSign==null)
-                return;
+                return;    
+
+
+            _netCNN.SetInput(loadedSign.Red.ToByteArray(), loadedSign.Green.ToByteArray(), loadedSign.Blue.ToByteArray());
+            _netCNN.Update();
 
             List<float> trainingValues = new List<float>();
-
-            _net.SetInput(loadedSign.Red.ToByteArray(), loadedSign.Green.ToByteArray(), loadedSign.Blue.ToByteArray());
-            _net.Update();
-
             for (int i = 0; i < 5; i++)
             {
                 trainingValues.Add(i == number ? 1 : 0);
             }
-            _net.CalculateCost(trainingValues);
-            _net.Correct(number);
-            _net.CalculateChanges();
+            _netCNN.CalculateCost(trainingValues);
+            _netCNN.Correct(number);
+            _netCNN.CalculateChanges();
+        }
+
+        public void CalculateRPN()
+        {
+            TrafficImage? loadedImage = LoadTrafficImage();
+            if(loadedImage==null)
+                return;
+
+            List<Rectangle> realRectangles = new List<Rectangle>();
+
+            int signCount = (int)loadedImage.SignCount;
+            byte[] locationData = loadedImage.Location.ToByteArray();
+            for(int i=0;i<signCount;i++)
+            {
+                realRectangles.Add(new Rectangle(((float)locationData[i*4+0])/255.0f,((float)locationData[i*4+1])/255.0f,((float)locationData[i*4+2])/255.0f,((float)locationData[i*4+3])/255.0f));
+            }
+
+
+            _netRPN.SetInput(loadedImage.Red.ToByteArray(), loadedImage.Green.ToByteArray(), loadedImage.Blue.ToByteArray());
+            _netRPN.Update();
+
+            int bestIndex = realRectangles[0].GetBestRectangle(_netRPN.allRectangles);
+
+            //Console.Write(bestIndex+", ");
+
+            List<float> trainingValues = new List<float>();
+            for(int i=0;i<_netRPN.neuralMaps[_netRPN.neuralMaps.Count-1][0].mapSize;i++)
+            {
+                trainingValues.Add(_netRPN.allRectangles[i].GIOU(realRectangles[0]));
+            }
+
+            _netRPN.CalculateCost(trainingValues);
+            _netRPN.presesntBest();
+            _netRPN.CalculateChanges();
         }
 
         public void uploadCurrentNet()
         {
-            _dbService.InsertNeuralNet(_net,correct*10);
+            _dbService.InsertCNN(_netCNN,(int)(correct/Global.BATCH_SIZE*100));
+            _dbService.InsertRPN(_netRPN,(int)_netRPN.cost);
         }
 
-        public void Improve()
+        public void ImproveCNN()
         {
-            _net.Improve();
-            cost = _net.cost;
-            _net.cost = 0;
-            correct = _net.correct;
-            _net.correct = 0;
+            _netCNN.Improve();
+            cost = _netCNN.cost;
+            _netCNN.cost = 0;
+            correct = _netCNN.correct;
+            _netCNN.correct = 0;
 
-            Console.WriteLine(cost/10.0f + "; "+(((float)correct)/10.0f*100)+"%");
+            Console.WriteLine(cost/Global.BATCH_SIZE + "; "+(((float)correct)/Global.BATCH_SIZE*100)+"%");
+        }
+
+        public void ImproveRPN()
+        {
+            _netRPN.Improve();
+            cost = _netRPN.cost;
+            _netRPN.cost = 0;
+
+            Console.WriteLine(cost/Global.BATCH_SIZE);
         }
 
         private void BuildConfiguration()

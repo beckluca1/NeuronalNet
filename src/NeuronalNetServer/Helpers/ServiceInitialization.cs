@@ -1,6 +1,8 @@
 using NeuronalNetServer.Services;
 using NeuronalNetServer.Proto;
 
+using NeuralNet;
+
 namespace NeuronalNetServer.Helpers
 {
     public static class ServiceInitialization
@@ -46,8 +48,11 @@ namespace NeuronalNetServer.Helpers
             int i=0;
             while(true)
             {
-                if(i>0&&i%10==0)
-                    calculator.Improve();
+                if(i>0&&i%Global.BATCH_SIZE==0)
+                {
+                    calculator.ImproveCNN();
+                    calculator.ImproveRPN();
+                }
 
                 if(i>0&&i%1000==0)
                 {
@@ -55,10 +60,11 @@ namespace NeuronalNetServer.Helpers
                     Console.WriteLine("Updated net");
                 }
                             
-                int type = i % 5;
-                calculator.Calculate(type);
+                int type = new Random().Next() % 5;
+                calculator.CalculateCNN(type);
+                calculator.CalculateRPN();
 
-                Thread.Sleep(10);
+                Thread.Sleep(1);
                 i++;
             }
         }

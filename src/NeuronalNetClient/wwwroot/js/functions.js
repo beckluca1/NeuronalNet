@@ -4,11 +4,14 @@ class sign
     lowerPointY = 0;
     upperPointX = 0;
     upperPointY = 0;
+
+    color = [0,0,0];
+
     lower = true;
     constructor(lowerPointX,lowerPointY,upperPointX,upperPointY)
     {
         this.lowerPointX = lowerPointX;
-        this.owerPointY = lowerPointY;
+        this.lowerPointY = lowerPointY;
         this.upperPointX = upperPointX;
         this.upperPointY = upperPointY;
     }
@@ -35,23 +38,24 @@ class sign
         }
     }
 
+    setColor(red, green, blue)
+    {
+        this.color = [red,green,blue];
+    }
+
     draw()
     {
         if(this==signRect[currentSign])
-        {
-            ctx.fillStyle = "rgba(80,150,190,1)";
-            ctx.strokeStyle = "rgba(80,150,190,1)";
-        }
+            this.setColor(80,150,190);
         else if(this==signRect[importantSign])
-        {
-            ctx.fillStyle = "rgba(40,90,110,1)";
-            ctx.strokeStyle = "rgba(40,90,110,1)";
-        }
+            this.setColor(40,90,110);
+        else if(this==netSign)
+            this.setColor(40,110,40);
         else
-        {
-            ctx.fillStyle = "rgba(0,0,0,1)";
-            ctx.strokeStyle = "rgba(0,0,0,1)";
-        }
+            this.setColor(0,0,0);
+
+        ctx.fillStyle = "rgba("+this.color[0]+","+this.color[1]+","+this.color[2]+",1)";
+        ctx.strokeStyle = "rgba("+this.color[0]+","+this.color[1]+","+this.color[2]+",1)";
 
         ctx.beginPath()
         ctx.rect(this.lowerPointX, this.lowerPointY, this.upperPointX-this.lowerPointX, this.upperPointY-this.lowerPointY);
@@ -105,6 +109,7 @@ var signImage = null;
 var trafficImage = null;
 
 var netValues = [0,0,0,0,0];
+var netSign;
 
 function init()
 {
@@ -161,6 +166,8 @@ function intervalCall()
         let signFactorY = 48/signImageHeight;
         let signFactorW = signFactorX*factor;
         let signFactorH = signFactorY*factor;
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
     
         ctx.drawImage(img, -signRect[importantSign].lowerPointX*signFactorX, -signRect[importantSign].lowerPointY*signFactorY, img.width*signFactorW, img.height*signFactorH);
     
@@ -184,9 +191,9 @@ function intervalCall()
 
         let factorS = Math.floor(canvasHeight/48/4);
 
-        for (var x=0;x<48;x++)
+        for (var y=0;y<48;y++)
         {
-            for (var y=0;y<48;y++)
+            for (var x=0;x<48;x++)
             {
                 ctx.fillStyle = "rgba("+signImage.data[0+x*4+y*4*48]+",0,0,1)";
                 ctx.beginPath()
@@ -244,6 +251,9 @@ function intervalCall()
     {
         signRect[i].draw();
     }
+
+    if(netSign!=null)
+        netSign.draw();
 
     var max = 255*netValues[0];
     var maxIndex = 0;
@@ -308,7 +318,7 @@ function removeSign()
 
 }
 
-function callNetUpdate()
+function callCNNUpdate()
 {
     if(signImage==null)
         return;
@@ -325,15 +335,44 @@ function callNetUpdate()
             signImageData.push(signImage.data[0+x*4+y*4*48]);
             signImageData.push(signImage.data[1+x*4+y*4*48]);
             signImageData.push(signImage.data[2+x*4+y*4*48]);
+            console.log(signImage.data[0+x*4+y*4*48]+" "+signImage.data[1+x*4+y*4*48]+" "+signImage.data[2+x*4+y*4*48]);
         }
     }
 
-    DotNet.invokeMethod('NeuronalNetClient', 'UpdateNetImage',signImageData); 
+    DotNet.invokeMethod('NeuronalNetClient', 'UpdateCNNImage',signImageData); 
 }
 
-function updateNet(values)
+function callRPNUpdate()
+{
+    if(trafficImage==null)
+        return;
+
+    let size = 48;
+
+    var trafficImageData = [];
+    trafficImageData.push(size);
+
+    for (var y=0;y<48;y++)
+    {
+        for (var x=0;x<48;x++)
+        {
+            trafficImageData.push(trafficImage.data[0+x*4+y*4*48]);
+            trafficImageData.push(trafficImage.data[1+x*4+y*4*48]);
+            trafficImageData.push(trafficImage.data[2+x*4+y*4*48]);
+        }
+    }
+
+    DotNet.invokeMethod('NeuronalNetClient', 'UpdateRPNImage',trafficImageData); 
+}
+
+function updateCNN(values)
 {
     netValues = values;
+}
+
+function updateRPN(values)
+{
+    netSign = new sign(values[0]*canvasWidth,values[1]*canvasHeight,values[2]*canvasWidth,values[3]*canvasHeight);
 }
 
 function uploadImage(number)
@@ -348,13 +387,15 @@ function uploadImage(number)
     trafficImageData.push(size);
     trafficImageData.push(signRect.length);
 
-    for (var x=0;x<48;x++)
+    for (var y=0;y<48;y++)
     {
-        for (var y=0;y<48;y++)
+        for (var x=0;x<48;x++)
         {
             signImageData.push(signImage.data[0+x*4+y*4*48]);
             signImageData.push(signImage.data[1+x*4+y*4*48]);
             signImageData.push(signImage.data[2+x*4+y*4*48]);
+            console.log(signImage.data[0+x*4+y*4*48]+" "+signImage.data[1+x*4+y*4*48]+" "+signImage.data[2+x*4+y*4*48]);
+
 
             trafficImageData.push(trafficImage.data[0+x*4+y*4*48]);
             trafficImageData.push(trafficImage.data[1+x*4+y*4*48]);
