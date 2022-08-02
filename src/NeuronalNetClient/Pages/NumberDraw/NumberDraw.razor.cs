@@ -1,11 +1,6 @@
-using Google.Protobuf;
 using NeuronalNetClient.Proto;
-
-using System.Reflection;
-
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-
 using NeuralNet;
 
 namespace NeuronalNetClient.Pages.NumberDraw
@@ -58,49 +53,8 @@ namespace NeuronalNetClient.Pages.NumberDraw
             return latestNeuralNet;
         }
 
-        private async Task UploadMultipleTrafficSigns()
-        {
-            var trafficSignList = new List<TrafficSign>();
-            trafficSignList.Add(GenerateRandomTraffigSign());
-
-            using (var streamingCall = GrpcUploader.SendMultipleTrafficSigns())
-            {
-                foreach (TrafficSign sign in trafficSignList)
-                {
-                    await streamingCall.RequestStream.WriteAsync(sign);
-                }
-                await streamingCall.RequestStream.CompleteAsync();
-            }
-        }
-
-        private void OnNumberButtonClicked(int number)
-        {
-            return;
-        }
-
-        private TrafficSign GenerateRandomTraffigSign()
-        {
-            var random = new Random();
-
-            byte[] red = new byte[BinaryDataLength];
-            byte[] green = new byte[BinaryDataLength];
-            byte[] blue = new byte[BinaryDataLength];
-
-            random.NextBytes(red);
-            random.NextBytes(green);
-            random.NextBytes(blue);
-
-            return new TrafficSign()
-            {
-                SignType = SignType.Unclassified,
-                Red = Google.Protobuf.ByteString.CopyFrom(red),
-                Green = Google.Protobuf.ByteString.CopyFrom(green),
-                Blue = Google.Protobuf.ByteString.CopyFrom(blue)
-            };  
-        }
-        
         private async Task CallJSFunction(String function, params Object[] args)
-        { 
+        {
             await JSRuntime.InvokeVoidAsync(function, args);
         }
 
@@ -112,12 +66,12 @@ namespace NeuronalNetClient.Pages.NumberDraw
             List<byte> greenData = new List<byte>();
             List<byte> blueData = new List<byte>();
 
-            Console.WriteLine("Got Data"+data[0]);
-            for(int i=0;i<data[0]*data[0];i++) 
+            Console.WriteLine("Got Data" + data[0]);
+            for (int i = 0; i < data[0] * data[0]; i++)
             {
-                redData.Add((byte)data[i*3+2]);
-                greenData.Add((byte)data[i*3+3]);
-                blueData.Add((byte)data[i*3+4]);
+                redData.Add((byte)data[i * 3 + 2]);
+                greenData.Add((byte)data[i * 3 + 3]);
+                blueData.Add((byte)data[i * 3 + 4]);
             }
 
             TrafficSign sign = new TrafficSign()
@@ -126,7 +80,7 @@ namespace NeuronalNetClient.Pages.NumberDraw
                 Red = Google.Protobuf.ByteString.CopyFrom(redData.ToArray()),
                 Green = Google.Protobuf.ByteString.CopyFrom(greenData.ToArray()),
                 Blue = Google.Protobuf.ByteString.CopyFrom(blueData.ToArray())
-            };  
+            };
 
             toBeUploadedSign = sign;
         }
@@ -140,20 +94,20 @@ namespace NeuronalNetClient.Pages.NumberDraw
             List<byte> blueData = new List<byte>();
             List<byte> locationData = new List<byte>();
 
-            Console.WriteLine("Got Data"+data[0]);
-            for(int i=0;i<data[0]*data[0];i++) 
+            Console.WriteLine("Got Data" + data[0]);
+            for (int i = 0; i < data[0] * data[0]; i++)
             {
-                redData.Add((byte)data[i*3+2]);
-                greenData.Add((byte)data[i*3+3]);
-                blueData.Add((byte)data[i*3+4]);
+                redData.Add((byte)data[i * 3 + 2]);
+                greenData.Add((byte)data[i * 3 + 3]);
+                blueData.Add((byte)data[i * 3 + 4]);
             }
 
-            for(int i=0;i<number;i++) 
+            for (int i = 0; i < number; i++)
             {
-                locationData.Add((byte)data[i*4+2+data[0]*data[0]*3]);
-                locationData.Add((byte)data[i*4+3+data[0]*data[0]*3]);
-                locationData.Add((byte)data[i*4+4+data[0]*data[0]*3]);
-                locationData.Add((byte)data[i*4+5+data[0]*data[0]*3]);
+                locationData.Add((byte)data[i * 4 + 2 + data[0] * data[0] * 3]);
+                locationData.Add((byte)data[i * 4 + 3 + data[0] * data[0] * 3]);
+                locationData.Add((byte)data[i * 4 + 4 + data[0] * data[0] * 3]);
+                locationData.Add((byte)data[i * 4 + 5 + data[0] * data[0] * 3]);
             }
 
             TrafficImage image = new TrafficImage()
@@ -163,7 +117,7 @@ namespace NeuronalNetClient.Pages.NumberDraw
                 Green = Google.Protobuf.ByteString.CopyFrom(greenData.ToArray()),
                 Blue = Google.Protobuf.ByteString.CopyFrom(blueData.ToArray()),
                 Location = Google.Protobuf.ByteString.CopyFrom(locationData.ToArray())
-            };  
+            };
 
             toBeUploadedImage = image;
         }
@@ -175,12 +129,12 @@ namespace NeuronalNetClient.Pages.NumberDraw
             List<byte> greenData = new List<byte>();
             List<byte> blueData = new List<byte>();
 
-            Console.WriteLine("Got Data"+data[0]);
-            for(int i=0;i<data[0]*data[0];i++) 
+            Console.WriteLine("Got Data" + data[0]);
+            for (int i = 0; i < data[0] * data[0]; i++)
             {
-                redData.Add((byte)data[i*3+1]);
-                greenData.Add((byte)data[i*3+2]);
-                blueData.Add((byte)data[i*3+3]);
+                redData.Add((byte)data[i * 3 + 1]);
+                greenData.Add((byte)data[i * 3 + 2]);
+                blueData.Add((byte)data[i * 3 + 3]);
             }
 
             currentCNN.SetInput(redData.ToArray(), greenData.ToArray(), blueData.ToArray());
@@ -194,12 +148,12 @@ namespace NeuronalNetClient.Pages.NumberDraw
             List<byte> greenData = new List<byte>();
             List<byte> blueData = new List<byte>();
 
-            Console.WriteLine("Got Data"+data[0]);
-            for(int i=0;i<data[0]*data[0];i++) 
+            Console.WriteLine("Got Data" + data[0]);
+            for (int i = 0; i < data[0] * data[0]; i++)
             {
-                redData.Add((byte)data[i*3+1]);
-                greenData.Add((byte)data[i*3+2]);
-                blueData.Add((byte)data[i*3+3]);
+                redData.Add((byte)data[i * 3 + 1]);
+                greenData.Add((byte)data[i * 3 + 2]);
+                blueData.Add((byte)data[i * 3 + 3]);
             }
 
             currentRPN.SetInput(redData.ToArray(), greenData.ToArray(), blueData.ToArray());
@@ -217,19 +171,24 @@ namespace NeuronalNetClient.Pages.NumberDraw
             currentCNN = NetSaveStateHandler.readFromSaveStateCNN((await GetLatestCNN()).NetData.ToByteArray());
             currentRPN = NetSaveStateHandler.readFromSaveStateRPN((await GetLatestRPN()).NetData.ToByteArray());
         }
-        
 
         public async void GetNetOutput()
         {
             await CallJSFunction("callCNNUpdate");
             await CallJSFunction("callRPNUpdate");
 
-            await CallJSFunction("updateCNN",currentCNN.GetOutput().ToArray());
+            await CallJSFunction("updateCNN", currentCNN.GetOutput().ToArray());
 
             Rectangle bestRectangle = currentRPN.presesntBest();
-            float[] output = new float[]{bestRectangle.x-bestRectangle.width/2,bestRectangle.y-bestRectangle.height/2,bestRectangle.x+bestRectangle.width/2,bestRectangle.y+bestRectangle.height/2};
-            await CallJSFunction("updateRPN",output);
+            float[] output = new float[]
+            {
+                bestRectangle.x-bestRectangle.width/2,
+                bestRectangle.y-bestRectangle.height/2,
+                bestRectangle.x+bestRectangle.width/2,
+                bestRectangle.y+bestRectangle.height/2
+            };
 
+            await CallJSFunction("updateRPN", output);
         }
 
         #endregion

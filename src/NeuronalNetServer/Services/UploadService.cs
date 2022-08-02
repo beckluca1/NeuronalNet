@@ -29,21 +29,6 @@ namespace NeuronalNetServer.Services
 
         #region Methods
 
-        public override async Task<SuccessReply> SendBitmapData(IAsyncStreamReader<BitmapData> requestStream, ServerCallContext context)
-        {
-            while (await requestStream.MoveNext())
-            {
-                var bitmap = requestStream.Current;
-
-                //TODO: process BitmapData
-            }
-
-            return new SuccessReply()
-            {
-                Success = true
-            };
-        }
-
         public override Task<SuccessReply> SendTrafficSign(TrafficSign request, ServerCallContext context)
         {
             _dbService.InsertTrafficSign(request);
@@ -83,7 +68,6 @@ namespace NeuronalNetServer.Services
 
             return Task.FromResult(reply);
         }
-
  
         public override Task<Proto.NeuralNetData> GetCNNData(Null request, ServerCallContext context)
         {
@@ -91,6 +75,7 @@ namespace NeuronalNetServer.Services
 
             return Task.FromResult(neuralNetData);
         }
+
         public override Task<Proto.NeuralNetData> GetRPNData(Null request, ServerCallContext context)
         {
             var neuralNetData = _dbService.GetLatestRPN();

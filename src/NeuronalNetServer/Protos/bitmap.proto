@@ -5,8 +5,6 @@ option csharp_namespace = "NeuronalNetServer.Proto";
 package bitmap;
 
 service Uploader {
-  rpc SendBitmapData (stream BitmapData) returns (SuccessReply);
-
   rpc SendTrafficSign (TrafficSign) returns (SuccessReply);
   rpc SendMultipleTrafficSigns (stream TrafficSign) returns (SuccessReply);
 
@@ -16,11 +14,6 @@ service Uploader {
 
   rpc GetCNNData (Null) returns (NeuralNetData);
   rpc GetRPNData (Null) returns (NeuralNetData);
-}
-
-message BitmapData {
-  int32 number = 1;
-  bytes bitmap = 2;
 }
 
 message TrafficSign {
