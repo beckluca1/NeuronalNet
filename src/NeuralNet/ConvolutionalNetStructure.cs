@@ -2,6 +2,7 @@ namespace NeuralNet
 {
     public static class Global
     {
+        public static float BATCH_SIZE = 10;
         public static Random RANDOM = new Random();
 
         public static float RandomFloat(float max, float min=0)
@@ -21,7 +22,9 @@ namespace NeuralNet
 
         public static float DSigmoid(float value)
         {
-            return Sigmoid(value)*(1-Sigmoid(value));
+            float sig = Sigmoid(value);
+            float dSig = sig*(1-sig);
+            return Math.Max(dSig,0.0001f);
         }
 
         public static byte[] floatToByte(float[] data)
@@ -110,6 +113,7 @@ namespace NeuralNet
             type = NeuronType.Convolutional;
 
             filterSize = inFilterSize;
+
             previousMaps = inPreviousMaps;
             mapSize = previousMaps[0].mapSize-filterSize+1;
             mapArea = mapSize*mapSize;
@@ -141,11 +145,15 @@ namespace NeuralNet
                 {
                     for(int x=0;x<mapSize;x++)
                     {
+                        int mC = x+mapSize*y;
                         for(int dY=0;dY<filterSize;dY++)
                         {
                             for(int dX=0;dX<filterSize;dX++)
                             {
-                                activations[x+mapSize*y] += previousMap.values[(x+dX)+previousMapSize*(y+dY)]*kernel.weights[dX+filterSize*dY];
+                                int pC = (x+dX)+previousMapSize*(y+dY);
+                                int wC = dX+filterSize*dY;
+
+                                activations[mC] += previousMap.values[pC]*kernel.weights[wC];
                             }
                         }
                     }
@@ -172,13 +180,17 @@ namespace NeuralNet
                         {
                             for(int dX=0;dX<filterSize;dX++)
                             {
-                                kernel.dWeights[dX+filterSize*dY] += previousMap.values[(x+dX)+previousMapSize*(y+dY)]*dValues[x+mapSize*y];
-                                kernel.dWeightsCount[dX+filterSize*dY]++;
+                                int mC = x+mapSize*y;
+                                int pC = (x+dX)+previousMapSize*(y+dY);
+                                int wC = dX+filterSize*dY;
+
+                                kernel.dWeights[wC] += previousMap.values[pC]*dValues[mC];
+                                kernel.dWeightsCount[wC]++;
                                 if(previousMap.type!=NeuronType.Pooling)
-                                    previousMap.dValues[(x+dX)+previousMapSize*(y+dY)] += kernel.weights[dX+filterSize*dY]*Global.DSigmoid(previousMap.activations[(x+dX)+previousMapSize*(y+dY)])*dValues[x+mapSize*y];
+                                    previousMap.dValues[pC] += kernel.weights[wC]*Global.DSigmoid(previousMap.activations[pC])*dValues[mC];
                                 else
-                                    previousMap.dValues[(x+dX)+previousMapSize*(y+dY)] += kernel.weights[dX+filterSize*dY]*dValues[x+mapSize*y];
-                                previousMap.dValuesCount[(x+dX)+previousMapSize*(y+dY)]++;
+                                    previousMap.dValues[pC] += kernel.weights[wC]*dValues[mC];
+                                previousMap.dValuesCount[pC]++;
                             }
                         }
                     }
@@ -329,13 +341,13 @@ namespace NeuralNet
             dValuesCount = new List<int>();
             for(int i=0;i<mapArea;i++) dValuesCount.Add(0);
             bias = new List<float>();
-            for(int i=0;i<mapArea;i++) bias.Add(Global.RandomFloat(5,-5));
+            for(int i=0;i<mapArea;i++) bias.Add(Global.RandomFloat(1f,-1f));
             dBias = new List<float>();
             for(int i=0;i<mapArea;i++) dBias.Add(0);
             dBiasCount = new List<int>();
             for(int i=0;i<mapArea;i++) dBiasCount.Add(0);
             weights = new List<float>();
-            for(int i=0;i<mapArea*previousMaps.Count*previousMaps[0].mapArea;i++) weights.Add(Global.RandomFloat(1,-1));
+            for(int i=0;i<mapArea*previousMaps.Count*previousMaps[0].mapArea;i++) weights.Add(Global.RandomFloat(1f,-1f));
             dWeights = new List<float>();
             for(int i=0;i<mapArea*previousMaps.Count*previousMaps[0].mapArea;i++) dWeights.Add(0);
             dWeightsCount = new List<int>();
@@ -391,10 +403,10 @@ namespace NeuralNet
 
         public override void Improve()
         {
-            for(int i=0;i<mapArea;i++) bias[i] -= NeuralMap.learnRate*dBias[i]/batchSize;
+            for(int i=0;i<mapArea;i++) bias[i] -= NeuralMap.learnRate*dBias[i]/Global.BATCH_SIZE;
             for(int i=0;i<mapArea;i++) dBias[i] = 0;
             for(int i=0;i<mapArea;i++) dBiasCount[i] = 0;
-            for(int i=0;i<mapArea*previousMaps.Count*previousMaps[0].mapArea;i++) weights[i] -= NeuralMap.learnRate*dWeights[i]/batchSize;
+            for(int i=0;i<mapArea*previousMaps.Count*previousMaps[0].mapArea;i++) weights[i] -= NeuralMap.learnRate*dWeights[i]/Global.BATCH_SIZE;
             for(int i=0;i<mapArea*previousMaps.Count*previousMaps[0].mapArea;i++) dWeights[i] = 0;
             for(int i=0;i<mapArea*previousMaps.Count*previousMaps[0].mapArea;i++) dWeightsCount[i] = 0;
             for(int i=0;i<mapArea;i++) dValues[i] = 0;
@@ -417,7 +429,7 @@ namespace NeuralNet
     {
         public NeuronType type;
 
-        public static int batchSize = 10;
+        public bool keepSize = false;
 
         public int mapSize = 0;
         public int mapArea = 0;
@@ -466,7 +478,7 @@ namespace NeuralNet
 
         public void Improve()
         {
-            for(int i=0;i<kernelArea;i++) weights[i] -= NeuralMap.learnRate*dWeights[i]/NeuralMap.batchSize;
+            for(int i=0;i<kernelArea;i++) weights[i] -= NeuralMap.learnRate*dWeights[i]/Global.BATCH_SIZE;
             for(int i=0;i<kernelArea;i++) dWeights[i] = 0;
             for(int i=0;i<kernelArea;i++) dWeightsCount[i] = 0;
         }
@@ -474,13 +486,15 @@ namespace NeuralNet
 
     public class ConvolutionalNet
     {
-        public List<List<NeuralMap>> neuralMaps = new List<List<NeuralMap>>(8);
+        public List<List<NeuralMap>> neuralMaps;
 
         public float cost = 0;
         public int correct = 0;
 
         public ConvolutionalNet()
         {
+            neuralMaps = new List<List<NeuralMap>>();
+
             int layerCount = 9;
             int[] layerSizes = {3,10,10,15,15,20,20,1,1};
             int[] mapSizes = {48,46,23,20,10,8,4,25,5};
@@ -508,6 +522,8 @@ namespace NeuralNet
 
         public ConvolutionalNet(int layerCount, int[] layerSizes, int[] mapSizes, NeuronType[] neuronTypes, int[] filterSizes)
         {
+            neuralMaps = new List<List<NeuralMap>>();
+
             for(int i=0;i<layerCount;i++)
             {
                 NeuronType type = neuronTypes[i];
