@@ -16,7 +16,7 @@ builder.Services.AddSingleton(services =>
         var grpcOptions = new GrpcChannelOptions()
         {
             HttpHandler = httpHandler,
-            MaxReceiveMessageSize = 32
+            MaxReceiveMessageSize = 33554432
         };
 
         var grpcChannel = GrpcChannel.ForAddress("https://localhost:7285", grpcOptions);
