@@ -335,7 +335,6 @@ function callCNNUpdate()
             signImageData.push(signImage.data[0+x*4+y*4*48]);
             signImageData.push(signImage.data[1+x*4+y*4*48]);
             signImageData.push(signImage.data[2+x*4+y*4*48]);
-            console.log(signImage.data[0+x*4+y*4*48]+" "+signImage.data[1+x*4+y*4*48]+" "+signImage.data[2+x*4+y*4*48]);
         }
     }
 
@@ -394,8 +393,6 @@ function uploadImage(number)
             signImageData.push(signImage.data[0+x*4+y*4*48]);
             signImageData.push(signImage.data[1+x*4+y*4*48]);
             signImageData.push(signImage.data[2+x*4+y*4*48]);
-            console.log(signImage.data[0+x*4+y*4*48]+" "+signImage.data[1+x*4+y*4*48]+" "+signImage.data[2+x*4+y*4*48]);
-
 
             trafficImageData.push(trafficImage.data[0+x*4+y*4*48]);
             trafficImageData.push(trafficImage.data[1+x*4+y*4*48]);
@@ -419,6 +416,9 @@ function uploadImage(number)
     DotNet.invokeMethod('NeuronalNetClient', 'UploadSignImageData', signImageData); 
     DotNet.invokeMethod('NeuronalNetClient', 'UploadTrafficImageData', trafficImageData); 
 
+    let button = document.getElementById('upload_button');
+    button.hidden = false;
+
 }
 
 function dateiauswahl(evt) {
@@ -440,6 +440,8 @@ function dateiauswahl(evt) {
             signRect = [];
             currentSign = null;
             importantSign = null;
+            let button = document.getElementById('upload_button');
+            button.hidden = true;
         };
         })(f);
         // Bilder als Data URL auslesen.

@@ -13,8 +13,10 @@ namespace NeuronalNetServer.Services
         private ProposalNeuralNet _netRPN;
         private readonly DatabaseService _dbService;
 
-        public float cost = 0;
-        public int correct = 0;
+        public float CNNCost = 0;
+        public int CNNCorrect = 0;
+        public float RPNCost = 0;
+        public int RPNCorrect = 0;
 
         #endregion
 
@@ -50,8 +52,6 @@ namespace NeuronalNetServer.Services
             if(number==2&&randomIndex==8)
             {
                 byte[] arra = signs[randomIndex].Red.ToByteArray();
-                for(int i=0;i<10;i++)
-                    Console.WriteLine(arra[i]);
             }  
 
             return signs[randomIndex];
@@ -127,38 +127,43 @@ namespace NeuronalNetServer.Services
             List<float> trainingValues = new List<float>();
             for(int i=0;i<_netRPN.neuralMaps[_netRPN.neuralMaps.Count-1][0].mapSize;i++)
             {
-                trainingValues.Add(_netRPN.allRectangles[i].GIOU(realRectangles[0]));
+                float iou = _netRPN.allRectangles[i].GIOU(realRectangles[0]);
+                float dLoss = i==bestIndex||iou>0.7 ? 1 : iou < 0.3 ? 0 : _netRPN.neuralMaps[_netRPN.neuralMaps.Count-1][0].values[0];
+                trainingValues.Add(dLoss);//_netRPN.allRectangles[i].GIOU(realRectangles[0]));
             }
 
             _netRPN.CalculateCost(trainingValues);
             _netRPN.presesntBest();
+            _netRPN.Correct(bestIndex);
             _netRPN.CalculateChanges();
         }
 
         public void uploadCurrentNet()
         {
-            _dbService.InsertCNN(_netCNN,(int)(correct/Global.BATCH_SIZE*100));
-            _dbService.InsertRPN(_netRPN,(int)_netRPN.cost);
+            _dbService.InsertCNN(_netCNN,(int)(CNNCorrect/Global.BATCH_SIZE*100));
+            _dbService.InsertRPN(_netRPN,(int)(RPNCorrect/Global.BATCH_SIZE*100));
         }
 
         public void ImproveCNN()
         {
             _netCNN.Improve();
-            cost = _netCNN.cost;
+            CNNCost = _netCNN.cost;
             _netCNN.cost = 0;
-            correct = _netCNN.correct;
+            CNNCorrect = _netCNN.correct;
             _netCNN.correct = 0;
 
-            Console.WriteLine(cost/Global.BATCH_SIZE + "; "+(((float)correct)/Global.BATCH_SIZE*100)+"%");
+            Console.WriteLine(CNNCost/Global.BATCH_SIZE + "; "+(((float)CNNCorrect)/Global.BATCH_SIZE*100)+"%");
         }
 
         public void ImproveRPN()
         {
             _netRPN.Improve();
-            cost = _netRPN.cost;
+            RPNCost = _netRPN.cost;
             _netRPN.cost = 0;
+            RPNCorrect = _netRPN.correct;
+            _netRPN.correct = 0;
 
-            Console.WriteLine(cost/Global.BATCH_SIZE);
+            Console.WriteLine(RPNCost/Global.BATCH_SIZE + "; "+(((float)RPNCorrect)/Global.BATCH_SIZE*100)+"%");
         }
 
         private void BuildConfiguration()

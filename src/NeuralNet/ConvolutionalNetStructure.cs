@@ -2,7 +2,7 @@ namespace NeuralNet
 {
     public static class Global
     {
-        public static float BATCH_SIZE = 10;
+        public static float BATCH_SIZE = 30;
         public static Random RANDOM = new Random();
 
         public static float RandomFloat(float max, float min=0)
@@ -24,7 +24,7 @@ namespace NeuralNet
         {
             float sig = Sigmoid(value);
             float dSig = sig*(1-sig);
-            return Math.Max(dSig,0.0001f);
+            return Math.Max(dSig,0.001f);
         }
 
         public static byte[] floatToByte(float[] data)
@@ -73,8 +73,6 @@ namespace NeuralNet
             for(int i=0;i<mapArea;i++) dValues.Add(0);
             dValuesCount = new List<int>();
             for(int i=0;i<mapArea;i++) dValuesCount.Add(0);
-
-            //Console.WriteLine("Added Input map with size "+mapSize);
         }
 
         public override void Update()
@@ -128,8 +126,6 @@ namespace NeuralNet
             for(int i=0;i<mapArea;i++) dValuesCount.Add(0);
             kernels = new List<NeuralKernel>();
             for(int i=0;i<previousMaps.Count;i++) kernels.Add(new NeuralKernel(filterSize));
-
-            //Console.WriteLine("Added Convolutional map with size "+mapSize);
         }
 
         override public void Update() 
@@ -238,8 +234,6 @@ namespace NeuralNet
             for(int i=0;i<mapArea;i++) dValues.Add(0);
             dValuesCount = new List<int>();
             for(int i=0;i<mapArea;i++) dValuesCount.Add(0);
-
-            //Console.WriteLine("Added Pooling map with size "+mapSize);
         }
 
         override public void Update()
@@ -352,8 +346,6 @@ namespace NeuralNet
             for(int i=0;i<mapArea*previousMaps.Count*previousMaps[0].mapArea;i++) dWeights.Add(0);
             dWeightsCount = new List<int>();
             for(int i=0;i<mapArea*previousMaps.Count*previousMaps[0].mapArea;i++) dWeightsCount.Add(0);
-
-            //Console.WriteLine("Added Connected map with size "+mapArea);
         }
 
         override public void Update()
@@ -545,8 +537,6 @@ namespace NeuralNet
 
         public void SetInput(byte[] inputR, byte[] inputG, byte[] inputB)
         {
-            //Console.WriteLine("Hello, World");
-
             int inputSize = 48*48;
 
             List<float> dataR = new List<float>();
@@ -588,11 +578,9 @@ namespace NeuralNet
             float max = values[0];
             for(int i=0;i<values.Count;i++)
             {
-                //Console.Write(values[i]+", ");
                 maxIndex = (values[i]) > max ? i : maxIndex;
                 max = (values[i]) > max ? (values[i]) : max;
             }
-            //Console.WriteLine("-> "+maxIndex+" ("+number+")");
             correct += number==maxIndex ? 1 : 0;
             return number==maxIndex;
         }

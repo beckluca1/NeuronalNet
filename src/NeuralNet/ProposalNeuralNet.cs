@@ -37,9 +37,9 @@ namespace NeuralNet
             int[] rectSizes = new int[]{6,10,16,22,28,36};
             float[] ratios = new float[]{1.2f,1,0.8f};
 
-            for(int x=0;x<imageSize;x+=8)
+            for(int x=0;x<imageSize;x+=2)
             {
-                for(int y=0;y<imageSize;y+=8)
+                for(int y=0;y<imageSize;y+=2)
                 {
                     for(int sizeIndex=0;sizeIndex<rectSizes.Length;sizeIndex++)
                     {
@@ -85,7 +85,7 @@ namespace NeuralNet
             float union = Union(rect);
             float bounding = Bounding(rect);
 
-            float giou = intersection/union;// - (bounding-union)/bounding;
+            float giou = intersection/union - (bounding-union)/bounding;
 
             return giou;
         }
@@ -114,11 +114,11 @@ namespace NeuralNet
 
             allRectangles = Rectangle.GetAllRectangles();
 
-            int layerCount = 9;
-            int[] layerSizes = {3,10,10,15,15,20,20,1,1};
-            int[] mapSizes = {48,46,23,20,10,8,4,250,allRectangles.Count};
-            NeuronType[] neuronTypes = {NeuronType.Input,NeuronType.Convolutional,NeuronType.Pooling,NeuronType.Convolutional,NeuronType.Pooling,NeuronType.Convolutional,NeuronType.Pooling,NeuronType.Connected,NeuronType.Connected};
-            int[] filterSizes = {1,3,2,4,2,3,2,1,1};
+            int layerCount = 7;
+            int[] layerSizes = {3,10,10,15,15,20,1};
+            int[] mapSizes = {48,46,23,20,10,8,allRectangles.Count};
+            NeuronType[] neuronTypes = {NeuronType.Input,NeuronType.Convolutional,NeuronType.Pooling,NeuronType.Convolutional,NeuronType.Pooling,NeuronType.Convolutional,NeuronType.Connected};
+            int[] filterSizes = {1,3,2,4,2,3,1};
 
             for(int i=0;i<layerCount;i++)
             {
@@ -131,10 +131,7 @@ namespace NeuralNet
                     else if(type==NeuronType.Convolutional)
                         neuralMaps[i].Add(new ConvolutionalMap(filterSizes[i],neuralMaps[i-1]));
                     else if(type==NeuronType.Pooling)
-                    {
-                        Console.WriteLine(neuralMaps[i-1]);
                         neuralMaps[i].Add(new PoolingMap(filterSizes[i],neuralMaps[i-1][j]));
-                    }
                     else if(type==NeuronType.Connected)
                         neuralMaps[i].Add(new ConnectedMap(mapSizes[i],neuralMaps[i-1]));
                 }
