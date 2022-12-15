@@ -2,7 +2,7 @@
 
 ## About
 
-NeuronalNet is going to be a small neural network that recognizes symbols drawn by a user. These
+NeuronalNet is going to be a small neural network that recognizes symbols uploaded by a user. These
 users can interact with it on a small website which is based on
 [Microsoft's Blazor framework](https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor).
 Beside Blazor for the frontend, we will use
